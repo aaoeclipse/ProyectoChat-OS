@@ -4,15 +4,20 @@
 #include <stdlib.h> 
 #include <netinet/in.h> 
 #include <string.h> 
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #define PORT 8080 
+#define NETWORKADDRESS 127.0.0.1 
    
 int main(int argc, char const *argv[]) 
 { 
     struct sockaddr_in address; 
     int sock = 0, valread; 
     struct sockaddr_in serv_addr; 
-    char *hello = "Hello from client"; 
+    char *hello = (char*)"Hello from client"; 
     char buffer[1024] = {0}; 
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
         printf("\n Socket creation error \n"); 
@@ -36,6 +41,7 @@ int main(int argc, char const *argv[])
         printf("\nConnection Failed \n"); 
         return -1; 
     } 
+
     send(sock , hello , strlen(hello) , 0 ); 
     printf("Hello message sent\n"); 
     valread = read(sock , buffer, 1024); 
