@@ -1,8 +1,7 @@
-#include <iostream>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 
-using namespace std;
 
 #define NUM_THREADS 5
 
@@ -15,8 +14,8 @@ void *PrintHello(void *threadarg) {
    struct thread_data *my_data;
    my_data = (struct thread_data *) threadarg;
 
-   cout << "Thread ID : " << my_data->thread_id ;
-   cout << " Message : " << my_data->message << endl;
+   printf("Thread ID : ");
+   printf(" Message : %s ", my_data->message);
 
    pthread_exit(NULL);
 }
@@ -28,13 +27,13 @@ int main () {
    int i;
 
    for( i = 0; i < NUM_THREADS; i++ ) {
-      cout <<"main() : creating thread, " << i << endl;
+      printf("main() : creating thread, %d\n",i);
       td[i].thread_id = i;
-      td[i].message = "This is message";
+      td[i].message = "This is message\n";
       rc = pthread_create(&threads[i], NULL, PrintHello, (void *)&td[i]);
       
       if (rc) {
-         cout << "Error:unable to create thread," << rc << endl;
+         printf("Error:unable to create thread, %d", rc);
          exit(-1);
       }
    }

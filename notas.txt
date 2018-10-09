@@ -1,0 +1,18 @@
+Proyecto de investigacion cientifica
+    * Vertical orientacion
+
+
+Ejemplos de sincronizacion con hardware
+
+Mutex locks
+    * variables compartida entre procesos o threads, usada para sincronizar acceso a regiones criticas
+    * spinlock por el uso de busy
+    aquire(){
+        while (!available)
+        ; // busy wait
+        available = false;
+    }
+    release(){
+        available = true;
+    }
+    * trhead_yield, da el acceso a otro proceso
