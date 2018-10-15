@@ -96,13 +96,27 @@ int main(int argc, char const *argv[])
         }
         users[counter].userID = counter;
         valread = read(new_socket, buffer, 1024);
-        printf("%s\n", buffer);
         users[counter].message = buffer;
         rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
         send(new_socket, hello, strlen(hello), 0);
         counter = counter + 1;
     }
 
+/*  while( (client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c)) )
+    {
+        puts("Connection accepted");
+
+        pthread_t sniffer_thread;
+        new_sock = (int*) malloc(1);
+        *new_sock = client_sock;
+
+        if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0)
+        {
+            //ERROR
+        }
+
+        printf("Handler assigned");
+    } */
 
     printf("Hello message sent\n");
     return 0;
