@@ -41,59 +41,7 @@ void *createUser(void *usr)
     struct user *userInfo;
     userInfo = (struct user *)usr;
     fflush(stdout);
-    // CREATING NEW SOCKET FOR THIS USER
-    int server_fd_user, new_socket_user, valread_user, rc_user;
-    struct sockaddr_in address_user;
-    int addrlen_user = sizeof(address_user);
-    int opt = 1, userMessage;
-    char bufferUser[1024] = {0};
-    if ((server_fd_user = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd_user, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                   &opt, sizeof(opt)))
-    {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-    address_user.sin_family = AF_INET;
-    address_user.sin_addr.s_addr = INADDR_ANY;
-    address_user.sin_port = htons(PORT);
-
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd_user, (struct sockaddr *)&address_user,
-             sizeof(address_user)) < 0)
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    memset(bufferUser, 0, sizeof(bufferUser));
-    fflush(stdout);
-    memset(bufferUser, 0, sizeof(bufferUser));
-
-    if (listen(server_fd_user, 3) < 0)
-    {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    if ((new_socket_user = accept(server_fd_user, (struct sockaddr *)&address_user,
-                                  (socklen_t *)&addrlen_user)) < 0)
-    {
-        perror("failed");
-        exit(EXIT_FAILURE);
-    }
-    while (1)
-    // READING USER
-    {
-        userMessage = read(new_socket_user,bufferUser,255);
-        int i = strncmp("Bye", bufferUser, 3);
-        if (i == 0)
-            break;
-        write(new_socket_user, "mssg recieved", strlen("mssg recieved"));
-    }
+    
     pthread_exit(NULL);
 }
 

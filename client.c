@@ -29,6 +29,7 @@ int ID, lengthOfString, sock = 0, valread;
 struct sockaddr_in serv_addr;
 bool connected;
 char username[256];
+char buffer[1024] = {0}, recvBuffer[1024] = {0}, *ipAddress;
 
 int main(int argc, char const *argv[])
 {
@@ -36,7 +37,7 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     char exitcommand = 'q';
     int successfulSocket, instruction, writeCounter, sendSuccessful;
-    char buffer[1024] = {0}, recvBuffer[1024] = {0}, *ipAddress;
+    
     // Checks if arguments are correct
     if (argc != 2)
     {
@@ -183,11 +184,6 @@ void conn(int successfulSocket)
         connected = true;
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-        if (successfulSocket < 0)
-        {
-            printf("error reading from socket\n");
-            wantToExit = true;
-        }
         printf("ID: %s\n", recvBuffer);
     }
 }
