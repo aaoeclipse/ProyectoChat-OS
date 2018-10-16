@@ -32,6 +32,9 @@ struct user
     int userID;
     char *name;
     char *status;
+
+    char *address;
+    int fileDescriptor;
 };
 
 // creates user with his pthread
@@ -39,9 +42,32 @@ void *createUser(void *usr)
 {
     // getting info from the user recived
     struct user *userInfo;
+    char bufferUser[1024] = {0};
+    char *accepted = "accpeted";
+    int valread;
     userInfo = (struct user *)usr;
     fflush(stdout);
-    
+
+    while (1){
+         // COMUNICATION NEW USER
+        bzero(bufferUser, sizeof(bufferUser));
+        // reads recived message
+        valread = read(userInfo->fileDescriptor, bufferUser, sizeof(bufferUser));
+        if (valread >= 0)
+        {
+            // create user with socket
+            bzero(bufferUser, sizeof(bufferUser));
+            // Sending Confirmation
+            write(userInfo->fileDescriptor, accepted, strlen(accepted));
+            // pthread_join(threads[counter],NULL);
+            // close(new_socket);
+        }
+        else
+        {
+            printf("ERROR socket reading\n");
+            bzero(bufferUser, sizeof(bufferUser));
+        }
+    }
     pthread_exit(NULL);
 }
 
@@ -92,28 +118,33 @@ int main(int argc, char const *argv[])
         perror("listen");
         exit(EXIT_FAILURE);
     }
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                             (socklen_t *)&addrlen)) < 0)
-    {
-        perror("failed");
-        exit(EXIT_FAILURE);
-    }
+
     while (running)
     {
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
+                                 (socklen_t *)&addrlen)) < 0)
+        {
+            perror("failed");
+            exit(EXIT_FAILURE);
+        }
         // COMUNICATION NEW USER
         bzero(buffer, sizeof(buffer));
         // reads recived message
         valread = read(new_socket, buffer, sizeof(buffer));
-        if (valread > 0)
+        if (valread >= 0)
         {
             // USER INFO
             users[counter].userID = counter;
             users[counter].name = (char *)buffer;
             users[counter].status = "active";
+            users[counter].fileDescriptor = new_socket;
+
             // users[counter].message = buffer;
             printf("userID: %d\n", users[counter].userID);
             printf("name: %s\n", users[counter].name);
             printf("status: %s\n", users[counter].status);
+            printf("socket: %d\n", users[counter].fileDescriptor);
+
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
             bzero(buffer, sizeof(buffer));
@@ -126,7 +157,6 @@ int main(int argc, char const *argv[])
         else
         {
             printf("ERROR socket reading\n");
-            write(new_socket, acceptedMssg, strlen(acceptedMssg));
             bzero(buffer, sizeof(buffer));
         }
     }

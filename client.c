@@ -83,11 +83,9 @@ int main(int argc, char const *argv[])
         {
             // restart the buffer
             memset(buffer, 0, sizeof(buffer));
-
-            printf("You: ");
+            printf("%s: ", username);
             // ask for input
             fgets(buffer, sizeof(buffer), stdin);
-            // fflush(stdin);
             // check if its a command
             if (buffer[0] == '\\')
             {
@@ -106,11 +104,10 @@ int main(int argc, char const *argv[])
                     break;
                 }
             }
-            // printf("%s", buffer); // testing buffer
-            buffer[sizeof(buffer) - 1] = '\0';
             sendSuccessful = sendMessage(buffer, sock);
             if (sendSuccessful < 0)
                 printf("ERROR writing to socket\n");
+            memset(recvBuffer, 0, sizeof(recvBuffer));
             successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
             if (successfulSocket < 0)
             {
@@ -133,7 +130,7 @@ void welcomeMessage()
     fflush(stdout);
     fgets(username, 256, stdin);
     fflush(stdin);
-    printf("Press '\\q' to quit\n");
+    printf("Press '\\h' for help or \\q to quit\n");
     fflush(stdout);
 }
 int commandFunctions(char *command)
