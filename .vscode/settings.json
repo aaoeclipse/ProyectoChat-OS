@@ -35,6 +35,7 @@
         "cmath": "c",
         "optional": "c",
         "in.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "time.h": "c"
     }
 }

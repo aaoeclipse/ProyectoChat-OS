@@ -14,8 +14,11 @@
 #include <stdbool.h>
 
 #define PORT 8080
+#define MAX_USERS 100
 void *createUser(void *usr);
 int main(int argc, char const *argv[]);
+
+//GLOBAL VARIABLES
 
 // user structure
 struct user
@@ -25,10 +28,10 @@ struct user
 	"name": "<nombre>",
 	"status": "<status>" 
     */
+
     int userID;
     char *name;
     char *status;
-    char *message;
 };
 
 // creates user with his pthread
@@ -36,14 +39,61 @@ void *createUser(void *usr)
 {
     // getting info from the user recived
     struct user *userInfo;
-    userInfo = (struct user *) usr;
-    printf("New User Created!\n");
+    userInfo = (struct user *)usr;
     fflush(stdout);
-    printf("ID : %d\n", userInfo->userID);
+    // CREATING NEW SOCKET FOR THIS USER
+    int server_fd_user, new_socket_user, valread_user, rc_user;
+    struct sockaddr_in address_user;
+    int addrlen_user = sizeof(address_user);
+    int opt = 1, userMessage;
+    char bufferUser[1024] = {0};
+    if ((server_fd_user = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+    // Forcefully attaching socket to the port 8080
+    if (setsockopt(server_fd_user, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
+                   &opt, sizeof(opt)))
+    {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+    address_user.sin_family = AF_INET;
+    address_user.sin_addr.s_addr = INADDR_ANY;
+    address_user.sin_port = htons(PORT);
+
+    // Forcefully attaching socket to the port 8080
+    if (bind(server_fd_user, (struct sockaddr *)&address_user,
+             sizeof(address_user)) < 0)
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+    memset(bufferUser, 0, sizeof(bufferUser));
     fflush(stdout);
-    printf("Message : %s\n", userInfo->message);
-    fflush(stdout);
-    // usr->message
+    memset(bufferUser, 0, sizeof(bufferUser));
+
+    if (listen(server_fd_user, 3) < 0)
+    {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+    if ((new_socket_user = accept(server_fd_user, (struct sockaddr *)&address_user,
+                                  (socklen_t *)&addrlen_user)) < 0)
+    {
+        perror("failed");
+        exit(EXIT_FAILURE);
+    }
+    while (1)
+    // READING USER
+    {
+        userMessage = read(new_socket_user,bufferUser,255);
+        int i = strncmp("Bye", bufferUser, 3);
+        if (i == 0)
+            break;
+        write(new_socket_user, "mssg recieved", strlen("mssg recieved"));
+    }
     pthread_exit(NULL);
 }
 
@@ -56,14 +106,12 @@ int main(int argc, char const *argv[])
     int addrlen = sizeof(address);
     char buffer[1024] = {0};
     char *hello = "Hello from server";
-    char *acceptedMssg = "accepted";
-    // user *listaDeUsuarios;
-
+    // char *acceptedMssg = "{\n  	\"status\": \"OK\",\n  	\"user\": {\n		\"id\": \"ASdbjkxclz+asd?\",\n		\"name\": \"<nombre>\",\n		\"status\": \"<status>\"\n	}\n}";
+    char *acceptedMssg = "Abxhlfadjsaf$312"; //TODO cambiar
     //Threads
-    pthread_t threads[100];
+    pthread_t threads[MAX_USERS];
     // Aqui es donde se van a guardar los usuairos, va a ser en la RAM
-    struct user users[100];
-
+    struct user users[MAX_USERS];
     fflush(stdout); // printf will not work without this
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -71,7 +119,6 @@ int main(int argc, char const *argv[])
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
-
     // Forcefully attaching socket to the port 8080
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
                    &opt, sizeof(opt)))
@@ -82,7 +129,6 @@ int main(int argc, char const *argv[])
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
-
     // Forcefully attaching socket to the port 8080
     if (bind(server_fd, (struct sockaddr *)&address,
              sizeof(address)) < 0)
@@ -91,38 +137,50 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
     memset(buffer, 0, sizeof(buffer));
-
+    fflush(stdout);
+    memset(buffer, 0, sizeof(buffer));
+    if (listen(server_fd, 3) < 0)
+    {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
+                             (socklen_t *)&addrlen)) < 0)
+    {
+        perror("failed");
+        exit(EXIT_FAILURE);
+    }
     while (running)
     {
-        fflush(stdout);
-        // memset(buffer, 0, sizeof(buffer));
-
-        if (listen(server_fd, 3) < 0)
-        {
-            perror("listen");
-            exit(EXIT_FAILURE);
-        }
-
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                                 (socklen_t *)&addrlen)) < 0)
-        {
-            perror("accept");
-            exit(EXIT_FAILURE);
-        }
-        // USER INFO
-        users[counter].userID = counter;
+        // COMUNICATION NEW USER
+        bzero(buffer, sizeof(buffer));
         // reads recived message
-        valread = read(new_socket, buffer, 1024);
-        users[counter].message = buffer;
-
-        // create user
-        rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
-
-        // Sending Confirmation
-        send(new_socket, acceptedMssg, strlen(acceptedMssg), 0);
-        counter = counter + 1;
-
-        // close(new_socket);
+        valread = read(new_socket, buffer, sizeof(buffer));
+        if (valread > 0)
+        {
+            // USER INFO
+            users[counter].userID = counter;
+            users[counter].name = (char *)buffer;
+            users[counter].status = "active";
+            // users[counter].message = buffer;
+            printf("userID: %d\n", users[counter].userID);
+            printf("name: %s\n", users[counter].name);
+            printf("status: %s\n", users[counter].status);
+            // create user with socket
+            rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
+            bzero(buffer, sizeof(buffer));
+            // Sending Confirmation
+            write(new_socket, acceptedMssg, strlen(acceptedMssg));
+            counter = counter + 1;
+            // pthread_join(threads[counter],NULL);
+            // close(new_socket);
+        }
+        else
+        {
+            printf("ERROR socket reading\n");
+            write(new_socket, acceptedMssg, strlen(acceptedMssg));
+            bzero(buffer, sizeof(buffer));
+        }
     }
 
     return 0;

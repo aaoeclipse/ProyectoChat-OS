@@ -11,29 +11,42 @@
 #include <ifaddrs.h>
 
 #define PORT 8080
-#define NETWORKADDRESS 127.0.0.1
+// #define NETWORKADDRESS 127.0.0.1
 
-// methods
+// METHODS
 /* Manda mensajes de una persona a otra, hay que cambiar los parametros para
     que acepte a un id */
 int sendMessage(char *message, int successfulSocket);
 /* Este metodo va a sacar el mensaje de bienvenida y se va a enfocar en conseguir los datos del usuario */
 void welcomeMessage();
-/*  */
+/* cuando alguien escribe \[algo] es considerado un command, esta funcion identifica cual es */
 int commandFunctions(char *command);
+/* Este connection se utiliza al principio para conectar al server y si no logra, sigue intentando */
 void conn();
-// global variables
+
+// GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
 struct sockaddr_in serv_addr;
 bool connected;
+char username[256];
 
 int main(int argc, char const *argv[])
 {
     bool wantToExit = false;
     struct sockaddr_in address;
     char exitcommand = 'q';
-    int successfulSocket, instruction, writeCounter;
-    char buffer[1024] = {0}, recvBuffer[1024] = {0};
+    int successfulSocket, instruction, writeCounter, sendSuccessful;
+    char buffer[1024] = {0}, recvBuffer[1024] = {0}, *ipAddress;
+    // Checks if arguments are correct
+    if (argc != 2)
+    {
+        fprintf(stderr, "[-] Incorrect format!\n");
+        fprintf(stderr, "$ ./[client] [ip of host]\n");
+        return EXIT_FAILURE;
+    }
+    // gets IP address of HOST
+    ipAddress = (char *)argv[1];
+
     // Bienvenida
     welcomeMessage();
 
@@ -42,29 +55,19 @@ int main(int argc, char const *argv[])
         printf("\n Socket creation error\n");
         return -1;
     }
-
     memset(&serv_addr, '0', sizeof(serv_addr));
-
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
+    if (inet_pton(AF_INET, ipAddress, &serv_addr.sin_addr) <= 0)
     {
         printf("\nInvalid address/ Address not supported\n");
         return -1;
     }
-    // CHECK CONNECTION
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-        printf("Connection Failed\n");
-        fflush(stdout);
-        connected = false;
-    }
-    else
-    {
-        connected = true;
-    }
+
+    // CONNECTION
+    conn(sock);
     while (wantToExit == false)
     {
         if (!connected)
@@ -72,17 +75,18 @@ int main(int argc, char const *argv[])
             printf("Trying to reconnect...\n");
             fflush(stdout);
             sleep(3);
-            conn();
+            conn(sock);
         }
         // If connection is successsful
         else
         {
             // restart the buffer
-            memset(buffer, 0, 1024);
+            memset(buffer, 0, sizeof(buffer));
+
             printf("You: ");
             // ask for input
-            fgets(buffer, 256, stdin);
-            fflush(stdin);
+            fgets(buffer, sizeof(buffer), stdin);
+            // fflush(stdin);
             // check if its a command
             if (buffer[0] == '\\')
             {
@@ -101,26 +105,18 @@ int main(int argc, char const *argv[])
                     break;
                 }
             }
-            // writeCounter = 0;
-            // while (writeCounter < 1024)
-            // {
-            //     successfulSocket = write(sock, buffer, strlen(buffer));
-            //     writeCounter = ++writeCounter;
-            // }
-            // if (successfulSocket < 0)
-            // {
-            //     printf("error writing to socket\n");
-            //     fflush(stdout);
-            // }
-
-            successfulSocket = read(sock, buffer, 255);
-
+            // printf("%s", buffer); // testing buffer
+            buffer[sizeof(buffer) - 1] = '\0';
+            sendSuccessful = sendMessage(buffer, sock);
+            if (sendSuccessful < 0)
+                printf("ERROR writing to socket\n");
+            successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
             if (successfulSocket < 0)
             {
                 printf("error reading from socket\n");
                 wantToExit = true;
             }
-            printf("%s\n", buffer);
+            printf("Server: %s\n", recvBuffer);
         }
     }
 
@@ -130,24 +126,12 @@ int main(int argc, char const *argv[])
 }
 void welcomeMessage()
 {
-    char *username, *ipAddress;
-    struct ifaddrs *id;
-    int val;
-    val = getifaddrs(&id);
-
     printf("============ ChatRoom 2018 ==============\n");
-
     // USERNAME
     printf("Please enter your username: ");
     fflush(stdout);
     fgets(username, 256, stdin);
     fflush(stdin);
-
-    // Gettting origin ip
-    ipAddress = (char *)id->ifa_addr;
-    printf("Your IP: %s", ipAddress);
-    printf("\n");
-
     printf("Press '\\q' to quit\n");
     fflush(stdout);
 }
@@ -173,16 +157,10 @@ int sendMessage(char *message, int successfulSocket)
     "action": "SEND_MESSAGE",
 	"from": "<idusuario>",
 	"to": "<idusuario>",
-	"message": "Hola"
+	"message": "message"
      */
+    successfulSocket = write(sock, message, strlen(message));
 
-    int writeCounter = 0;
-    writeCounter = 0;
-    while (writeCounter < 1024)
-    {
-        successfulSocket = write(sock, message, strlen(message));
-        writeCounter = ++writeCounter;
-    }
     if (successfulSocket < 0)
     {
         printf("error writing to socket\n");
@@ -191,17 +169,25 @@ int sendMessage(char *message, int successfulSocket)
     return successfulSocket;
 }
 
-void conn()
+void conn(int successfulSocket)
 {
     // CHECK CONNECTION
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        printf("Connection Failed \n");
+        printf("Connection Failed\n");
         fflush(stdout);
         connected = false;
     }
     else
     {
         connected = true;
+        sendMessage(username, successfulSocket);
+        successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
+        if (successfulSocket < 0)
+        {
+            printf("error reading from socket\n");
+            wantToExit = true;
+        }
+        printf("ID: %s\n", recvBuffer);
     }
 }
