@@ -38,6 +38,21 @@ pthread_t thread;
 int rc;
 bool wantToExit;
 
+// user structure
+struct user
+{
+    /* 
+    "id": "ASdbjkxclz+asd?",
+	"name": "<nombre>",
+	"status": "<status>" 
+    */
+    int userID;
+    char name[100];
+    char status[100];
+};
+
+struct user usuario;
+
 int main(int argc, char const *argv[])
 {
     wantToExit = false;
@@ -112,8 +127,24 @@ int main(int argc, char const *argv[])
                 case 2:
                     // Broadcast message
                     break;
+                case 3:
+                    //c 1 o //c 2 o //c 3
+                    //Change status
+                    int status;
+                    char *num;
+                    int len;                    
+                    int dec;
+                    num = buffer[(strlen(buffer)-1)]
+                    len = strlen(num);
+                    for(i=0; i<len; i++){
+		                dec = dec * 10 + ( num[i] - '0' );
+	                }
+                    printf("prueba para status %d",dec);
+                    char *a= ChangeStatus(dec);
+                    printf("%s",a);
+                    break:
                 default:
-                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive\n");
+                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
                     break;
                 }
             }
@@ -168,6 +199,12 @@ int commandFunctions(char *command)
             fflush(stdout);
             return 2;
         }
+        if ('s' == command[1])
+        {
+            printf("Change Status\n");
+            fflush(stdout);
+            return 3;
+        }
     }
     return -99;
 }
@@ -189,6 +226,40 @@ int sendMessage(char *message, int successfulSocket)
     return successfulSocket;
 }
 
+char * ChangeStatus(int status){
+/* 
+    {
+	"action": "CHANGE_STATUS",
+	"user": "<id_del_usuario>",
+	"status": "<status>"
+    }
+
+     */
+
+    if (status == 1){
+
+
+        return "Estado cambiado a active";
+    }
+    if (status == 2){
+
+
+
+        return "Estado cambiado a busy";
+    }
+    if (status == 3){
+
+
+        return "Estado cambiado a inactive";
+    }else{
+
+
+
+        return "No se pudo realizar el cambio";
+    }
+
+}
+
 void conn(int successfulSocket)
 {
     // CHECK CONNECTION
@@ -204,6 +275,8 @@ void conn(int successfulSocket)
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
         printf("%s\n", recvBuffer);
+        //Aqui tengo que guardar la informaicon del usuario
+        //es en donde tengo que parsear y guardar en usuario
     }
 }
 
