@@ -10,7 +10,7 @@
 #include <time.h>
 #include <ifaddrs.h>
 #include <pthread.h>
-// #include "cJSON.c"
+#include "cJSON.c"
 
 #define PORT 8080
 // #define NETWORKADDRESS 127.0.0.1
@@ -134,15 +134,15 @@ int main(int argc, char const *argv[])
                     char *num;
                     int len;                    
                     int dec;
-                    num = buffer[(strlen(buffer)-1)]
+                    num = buffer[(strlen(buffer)-1)];
                     len = strlen(num);
-                    for(i=0; i<len; i++){
+                    for(int i=0; i<len; i++){
 		                dec = dec * 10 + ( num[i] - '0' );
 	                }
                     printf("prueba para status %d",dec);
                     char *a= ChangeStatus(dec);
                     printf("%s",a);
-                    break:
+                    break;
                 default:
                     printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
                     break;
@@ -234,21 +234,54 @@ char * ChangeStatus(int status){
 	"status": "<status>"
     }
 
+
+    cJSON *RequestCambioEstado= cJSON_CreateObject();
+    cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
+    cJSON_AddStringToObject(RequestCambioEstado,"user","<id_del_usuario>");
+    cJSON_AddStringToObject(RequestCambioEstado,"status","<status>");
+    out = cJSON_Print(RequestCambioEstado);
+    printf("%s\n\n", out);
+    cJSON_Delete(RequestCambioEstado);
+    free(out);
+
+
      */
 
     if (status == 1){
 
-
+        cJSON *RequestCambioEstado= cJSON_CreateObject();
+        cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
+        cJSON_AddStringToObject(RequestCambioEstado,"user",usuario.userID);
+        cJSON_AddStringToObject(RequestCambioEstado,"status","active");
+        char *out = cJSON_Print(RequestCambioEstado);
+        //printf("%s\n\n", out);
+        cJSON_Delete(RequestCambioEstado);
+        free(out);
         return "Estado cambiado a active";
     }
     if (status == 2){
 
-
+        cJSON *RequestCambioEstado= cJSON_CreateObject();
+        cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
+        cJSON_AddStringToObject(RequestCambioEstado,"user",usuario.userID);
+        cJSON_AddStringToObject(RequestCambioEstado,"status","busy");
+        char *out = cJSON_Print(RequestCambioEstado);
+        //printf("%s\n\n", out);
+        cJSON_Delete(RequestCambioEstado);
+        free(out);
 
         return "Estado cambiado a busy";
     }
     if (status == 3){
 
+        cJSON *RequestCambioEstado= cJSON_CreateObject();
+        cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
+        cJSON_AddStringToObject(RequestCambioEstado,"user",usuario.userID);
+        cJSON_AddStringToObject(RequestCambioEstado,"status","inactive");
+        char *out = cJSON_Print(RequestCambioEstado);
+        //printf("%s\n\n", out);
+        cJSON_Delete(RequestCambioEstado);
+        free(out);
 
         return "Estado cambiado a inactive";
     }else{
@@ -275,8 +308,27 @@ void conn(int successfulSocket)
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
         printf("%s\n", recvBuffer);
+
+
         //Aqui tengo que guardar la informaicon del usuario
         //es en donde tengo que parsear y guardar en usuario
+
+        //buffer es lo que contiene el string donde viene lo que es la estructura del json
+        //se crea un objeto json, donde lo parseado se asigna
+        cJSON *json = cJSON_Parse(buffer);
+        cJSON *pruebaid = cJSON_GetObjectItem(json, "user");
+        cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid,"id");
+        cJSON *pruebanamereal = cJSON_GetObjectItem(pruebaid,"name");
+        cJSON *pruebastatusreal = cJSON_GetObjectItem(pruebaid,"status");
+        char *idusuario = cJSON_Print(pruebaidreal);
+        char *nameusuario = cJSON_Print(pruebaidreal);
+        char *statususuario = cJSON_Print(pruebaidreal);
+        strcpy (usuario.userID,idusuario);
+        strcpy (usuario.name,nameusuario);
+        strcpy (usuario.status,statususuario);
+        //printf("%s\n", outtt);
+        printf("este es el primer id o\n\n");
+
     }
 }
 
