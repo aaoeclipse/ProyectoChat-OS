@@ -10,7 +10,7 @@
 #include <time.h>
 #include <ifaddrs.h>
 #include <pthread.h>
-
+// #include "cJSON.c"
 
 #define PORT 8080
 // #define NETWORKADDRESS 127.0.0.1
@@ -25,9 +25,8 @@ void welcomeMessage();
 int commandFunctions(char *command);
 /* Este connection se utiliza al principio para conectar al server y si no logra, sigue intentando */
 void conn();
-char* LastcharDel(char* name);
+char *LastcharDel(char *name);
 void *listening(void *sock);
-
 
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
@@ -37,15 +36,15 @@ char username[256];
 char buffer[1024] = {0}, recvBuffer[1024] = {0}, *ipAddress;
 pthread_t thread;
 int rc;
-
+bool wantToExit;
 
 int main(int argc, char const *argv[])
 {
-    bool wantToExit = false;
+    wantToExit = false;
     struct sockaddr_in address;
     char exitcommand = 'q';
     int successfulSocket, instruction, writeCounter, sendSuccessful;
-    
+
     // Checks if arguments are correct
     if (argc != 2)
     {
@@ -77,8 +76,9 @@ int main(int argc, char const *argv[])
 
     // CONNECTION
     conn(sock);
+    rc = pthread_create(&thread, NULL, listening, (void *)&sock);
 
-    while (wantToExit == false)
+    while (!wantToExit)
     {
         if (!connected)
         {
@@ -87,7 +87,7 @@ int main(int argc, char const *argv[])
             sleep(3);
             conn(sock);
         }
-        
+
         // If connection is successsful
         else
         {
@@ -113,21 +113,23 @@ int main(int argc, char const *argv[])
                     // Broadcast message
                     break;
                 default:
-                    printf("======== Help:\n========\\q - quit\n========\\m [user] - change user target\n========\\b [mssg] - broadcast message");
+                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
                     break;
                 }
             }
-            sendSuccessful = sendMessage(buffer, sock);
-            if (sendSuccessful < 0)
-                printf("ERROR writing to socket\n");
-            memset(recvBuffer, 0, sizeof(recvBuffer));
-            successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-            if (successfulSocket < 0)
+            else
             {
-                printf("error reading from socket\n");
-                wantToExit = true;
+                sendSuccessful = sendMessage(buffer, sock);
+                if (sendSuccessful < 0)
+                    printf("ERROR writing to socket\n");
+                memset(recvBuffer, 0, sizeof(recvBuffer));
+                // successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
+                // if (successfulSocket < 0)
+                // {
+                //     printf("error reading from socket\n");
+                //     wantToExit = true;
+                // }
             }
-            printf("Server: %s\n", recvBuffer);
         }
     }
 
@@ -207,48 +209,53 @@ void conn(int successfulSocket)
         connected = true;
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-        printf("ID: %s\n", recvBuffer);
-        // rc = pthread_create(&thread, NULL, listening, (void *)&successfulSocket);
-
+        printf("%s\n", recvBuffer);
     }
 }
 
-char* LastcharDel(char* name)
+char *LastcharDel(char *name)
 {
     int i = 0;
-    while(name[i] != '\0')
+    while (name[i] != '\0')
     {
         i++;
-         
     }
-    name[i-1] = '\0';
+    name[i - 1] = '\0';
     return name;
 }
 
-void *listening(void *sock){
-    int newSock = *((int *) sock);
-    char *bufferUser;
-    while (1){
-         // COMUNICATION USER  
-        bzero(bufferUser, sizeof(bufferUser));
+void *listening(void *sock)
+{
+    int newSock = *((int *)sock);
+    char bufferUser[1024];
+    while (1)
+    {
+        // COMUNICATION USER
+        memset(bufferUser, 0, sizeof(bufferUser));
+        // bzero(bufferUser, sizeof(bufferUser));
         // reads recived message
         valread = read(newSock, bufferUser, sizeof(bufferUser));
-        if (valread >= 0)
+
+        if (valread > 0)
         {
-            // TODO: 
+            // TODO:
             //  * parsear de texto a JSON
             //  * sacar quien lo mando o si es broadcast
             //  * sacar quien lo mando
-            printf("User: %s", bufferUser);
-            /* int i=strncmp("BYE" , bufferUser, 3);
-            if(i == 0)
-               break; */
-            bzero(bufferUser, sizeof(bufferUser));
+
+            printf("\nUser: %s\n%s: ", bufferUser, username);
+
+            memset(bufferUser, 0, sizeof(bufferUser));
+            // bzero(bufferUser, sizeof(bufferUser));
+            fflush(stdout);
         }
         else
         {
-            printf("ERROR socket reading\n");
-            bzero(bufferUser, sizeof(bufferUser));
+            printf("ERROR Server Disconnected withouth HandShake\n");
+            memset(bufferUser, 0, sizeof(bufferUser));
+            // bzero(bufferUser, sizeof(bufferUser));
+            wantToExit = true;
+            break;
         }
     }
     pthread_exit(NULL);
