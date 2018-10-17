@@ -125,7 +125,7 @@ int main(int argc, char const *argv[])
                     // Private message
                     break;
                 case 2:
-                    // Broadcast message
+                    // List users
                     break;
                 case 3:
                     //c 1 o //c 2 o //c 3
@@ -193,9 +193,9 @@ int commandFunctions(char *command)
             fflush(stdout);
             return 1;
         }
-        if ('b' == command[1])
+        if ('l' == command[1])
         {
-            printf("Boradcasting Message\n");
+            printf("List users\n");
             fflush(stdout);
             return 2;
         }
