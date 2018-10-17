@@ -12,6 +12,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <time.h>
 #include "cJSON.c"
 
 #define PORT 8080
@@ -25,7 +26,7 @@ struct user
 	"name": "<nombre>",
 	"status": "<status>" 
     */
-    int userID;
+    char userID[100];
     char name[100];
     char status[100];
     // Extra
@@ -36,10 +37,13 @@ struct user
 //Threads
 pthread_t threads[MAX_USERS];
 char globalString[1024];
+char arr[5 + 1];
 // Aqui es donde se van a guardar los usuairos, va a ser en la RAM
 struct user users[MAX_USERS];
 struct user availableUsers[MAX_USERS];
+
 // METHODS
+void recivedJSON(char *info, struct user *actualUser);
 void *createUser(void *usr);
 int main(int argc, char const *argv[]);
 void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser);
@@ -57,7 +61,8 @@ void GetAvailableUsers();
 char *respuestaDeJSON(struct user createUser);
 void mensajeJSON(struct user *userSender, struct user userResiver, char *message);
 void firstJSONRecieve(char *informacionInutil, struct user newUser);
-
+char *createUserJson(char *id, char *name, char *status);
+char *randomStringFunction();
 // creates user with his pthread
 void *createUser(void *usr)
 {
@@ -80,7 +85,7 @@ void *createUser(void *usr)
             i = strncmp("BYE", bufferUser, 3);
             if (i == 0)
             {
-                printf("%d:%s BYE\n", userInfo->userID, userInfo->name);
+                printf("%s:%s BYE\n", userInfo->userID, userInfo->name);
                 fflush(stdout);
                 break;
             }
@@ -101,7 +106,7 @@ void *createUser(void *usr)
         }
         else
         {
-            printf("ERROR user %d:%s disconnected without handshake\n", userInfo->userID, userInfo->name);
+            printf("ERROR user %s:%s disconnected without handshake\n", userInfo->userID, userInfo->name);
             bzero(bufferUser, sizeof(bufferUser));
             // printf("%d BYE\n", userInfo->userID);
             fflush(stdout);
@@ -167,8 +172,9 @@ int main(int argc, char const *argv[])
         valread = read(new_socket, buffer, sizeof(buffer));
         if (valread >= 0)
         {
-            // USER INFO
-            users[counter].userID = counter;
+            // USER INFO FIXME:
+            char *randomString = randomStringFunction();
+            strcpy(users[counter].userID, randomString);
             strcpy(users[counter].name, buffer);
             strcpy(users[counter].status, "active");
             users[counter].fileDescriptor = new_socket;
@@ -223,45 +229,50 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
     // return resultSocket;
 }
 
-char *listUsers() {
-    FILE *f = fopen("file.txt", "w");
+char *listUsers()
+{
+    FILE *f = fopen("file.txt", "a");
     if (f == NULL)
     {
         printf("Error opening file!\n");
         //break;
     }
-else{
-    const char *intro [200];
-    *intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\": [";
-    fputs(f, *intro);
+    else
+    {
+        const char *intro[200];
+        *intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\": [";
+        fputs(f, *intro);
 
-    for (int i = 0; i < MAX_USERS; i++) {
-        if (availableUsers[i].userID < 0) {
-            break;
+        for (int i = 0; i < MAX_USERS; i++)
+        {
+            if (availableUsers[i].userID < 0)
+            {
+                break;
+            }
+            /*Sirve para imprimir y guardar en el file*/
+            fputs(f, createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status));
+            fputs(f, ",");
         }
-        /*Sirve para imprimir y guardar en el file*/
-        fputs(f, createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status));
-        fputs(f,",");
-    }
-    /* TODO:
+        /* TODO:
         1. sacar todos los users
         2. de users -> JSON
         3. Mandar a la persona que pidio
     */
-    
-    FILE *fp = fopen("file.txt","r");
-    char *c = fgetc(fp);
-    printf("%c", c);
-    fclose(fp);
-}
+
+        FILE *fp = fopen("file.txt", "r");
+        char *c = fgetc(fp);
+        printf("%s", c);
+        fclose(fp);
+    }
 }
 
-char createUserJson(char id, char name, char status){
+char *createUserJson(char *id, char *name, char *status)
+{
     //char userText [1000];
-    char idtext []= "{\"id\": ";
-    char nametext = "\n\"name\": ";
-    char statustext = "\n\"status\": ";
-    char endtext = "}";
+    char *idtext = "{\"id\": ";
+    char *nametext = "\n\"name\": ";
+    char *statustext = "\n\"status\": ";
+    char *endtext = "}";
     strcat(idtext, id);
     strcat(nametext, name);
     strcat(statustext, status);
@@ -270,23 +281,16 @@ char createUserJson(char id, char name, char status){
     strcat(idtext, endtext);
     return idtext;
 }
-char* withSemi(char *stringWithoutSemi){
-    memset(globalString, 0, sizeof(globalString));
-    char semi[50] = "\"";
-    fflush(stdout);
-    strcat(globalString, semi);
-    strcat(globalString, stringWithoutSemi);
-    strcat(globalString, "\"");
-    return (char *)globalString;
-}
 char *respuestaDeJSON(struct user currUser)
 {
     char *out;
-    char id[10];
+    char id[25];
     char name[100];
     char status[100];
     // id
-    snprintf(id, sizeof(id), "%d", currUser.userID);
+    // snprintf(id, sizeof(id), "%d", currUser.userID);
+    strcpy(id, currUser.userID);
+
     // name
     strcpy(name, currUser.name);
     // status
@@ -324,17 +328,25 @@ void initializeUsers()
 {
     for (int i = 0; i < MAX_USERS; i++)
     {
-        users[i].userID = -1;
+        strcpy(users[i].userID, "-1");
+        // users[i].userID = "-1";
     }
 }
 
 void GetAvailableUsers()
 {
     int availableUsersCounter = 0;
+    int negative;
     memset(availableUsers, 0, sizeof(availableUsers));
+
     for (int i = 0; i < MAX_USERS; i++)
     {
-        if (users[i].userID != -1)
+        strcpy(availableUsers[i].userID, "-1");
+    }
+    for (int i = 0; i < MAX_USERS; i++)
+    {
+        negative = strncmp("-1", users[i].userID, sizeof(users[i].userID));
+        if (negative != 0)
         {
             availableUsers[availableUsersCounter] = users[i];
         }
@@ -344,12 +356,12 @@ void GetAvailableUsers()
 char *JSONfromUser(struct user givenUser)
 {
     char *out;
-    char id[10];
+    char id[25];
     char name[100];
     char status[100];
     char *infoOfUser;
     // id
-    snprintf(id, sizeof(id), "%d", givenUser.userID);
+    strcpy(id, givenUser.userID);
     // name
     strcpy(name, givenUser.name);
     // status
@@ -365,7 +377,8 @@ char *JSONfromUser(struct user givenUser)
     cJSON_AddStringToObject(usr, "name", name);
     cJSON_AddStringToObject(usr, "status", status);
     // id
-    snprintf(id, sizeof(id), "%d", givenUser.userID);
+    // snprintf(id, sizeof(id), "%d", givenUser.userID);
+    strcpy(id, givenUser.userID);
     // name
     strcpy(name, givenUser.name);
     // status
@@ -383,7 +396,7 @@ char *JSONfromUser(struct user givenUser)
     return infoOfUser;
 }
 
-void errorResponder(char *message)
+void errorResponder(char *message, int socket)
 {
     char *out;
     //En caso de un error
@@ -391,7 +404,9 @@ void errorResponder(char *message)
     cJSON_AddStringToObject(Error, "status", "ERROR");
     cJSON_AddStringToObject(Error, "message", message);
     out = cJSON_Print(Error);
-    printf("%s\n\n", out);
+    write(socket, out, strlen(out));
+
+    // printf("%s\n\n", out);
     cJSON_Delete(Error);
     free(out);
 }
@@ -421,28 +436,34 @@ void recivedJSON(char *info, struct user *actualUser)
     cJSON *json = cJSON_Parse(info);
     cJSON *getAction = cJSON_GetObjectItem(json, "action");
     char *action = cJSON_Print(getAction);
-    compare = strncmp(SEND,action, sizeof(SEND));
-    if (compare == 0){
+    compare = strncmp(SEND, action, sizeof(SEND));
+    if (compare == 0)
+    {
         printf("SENT MESSAGE");
         // SEND MESSAGE
         cJSON *getID = cJSON_GetObjectItem(json, "to");
         // test char
-        char id =  cJSON_Print(getID);
-        int idInt = id - '0';
+        char *id = cJSON_Print(getID);
         cJSON *getMessage = cJSON_GetObjectItem(json, "message");
-        char *message =  cJSON_Print(getMessage);
-        mensajeJSON(actualUser, users[idInt], message);
+        char *message = cJSON_Print(getMessage);
+        int idDelUsuario = indexFromID(id);
+        if (idDelUsuario > 0)
+        {
+            mensajeJSON(actualUser, users[idDelUsuario], message);
+        }
+        errorResponder("No hay usuario con ese id", actualUser->fileDescriptor);
     }
-    compare = strncmp(LIST,action, sizeof(LIST));
-    if (compare == 0){
+    compare = strncmp(LIST, action, sizeof(LIST));
+    if (compare == 0)
+    {
         // LIST USER
         printf("LIST USER");
     }
-    compare = strncmp(CHANGE,action, sizeof(CHANGE));
-    if (compare == 0){
+    compare = strncmp(CHANGE, action, sizeof(CHANGE));
+    if (compare == 0)
+    {
         // CHANGE USER MODE
         printf("Change User");
-        
     }
 
     /* cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid, "id");
@@ -460,4 +481,39 @@ void firstJSONRecieve(char *informacionInutil, struct user newUser)
 {
     printf("wooo");
     respuestaDeJSON(newUser);
+}
+
+int indexFromID(char *id)
+{
+    GetAvailableUsers();
+    int equals;
+    int negative;
+    for (int i = 0; i < MAX_USERS; i++)
+    {
+        negative = strncmp("-1", availableUsers[i].userID, sizeof(id));
+        if (negative == 0)
+            break;
+
+        equals = strncmp(id, availableUsers[i].userID, sizeof(id));
+        if (equals == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+char *randomStringFunction()
+{
+    int i, n, rnd;
+    srand(time(NULL));
+    for (i = 0; i < 5; ++i)
+    {
+        rnd = rand();
+        n = (rnd >> 4) & 0xF;
+        *(arr + i) = (rnd & 0xF) & 1
+                         ? (n % 10) + '0'
+                         : (n % 26) + 'A';
+    }
+    arr[5] = 0;
+    return arr;
 }

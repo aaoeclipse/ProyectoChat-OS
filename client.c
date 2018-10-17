@@ -27,10 +27,11 @@ int commandFunctions(char *command);
 void conn();
 char *LastcharDel(char *name);
 void *listening(void *sock);
-char * ChangeStatus(int status, int successfulSocket);
+char *ChangeStatus(int status, int successfulSocket);
 
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
+char idParaMandar[25];
 struct sockaddr_in serv_addr;
 bool connected;
 char username[256];
@@ -47,7 +48,7 @@ struct user
 	"name": "<nombre>",
 	"status": "<status>" 
     */
-    int userID;
+    char userID[25];
     char name[100];
     char status[100];
 };
@@ -58,7 +59,7 @@ int main(int argc, char const *argv[])
 {
     int status;
     char *num;
-    int len;                    
+    int len;
     int dec;
     wantToExit = false;
     struct sockaddr_in address;
@@ -137,16 +138,17 @@ int main(int argc, char const *argv[])
                     //Change status
                     //int status;
                     //char *num;
-                    //int len;                    
+                    //int len;
                     //int dec;
-                    num = buffer[(strlen(buffer)-1)];
+                    strcpy(num , buffer[(strlen(buffer) - 1)]);
                     len = strlen(num);
-                    for(int i=0; i<len; i++){
-		                dec = dec * 10 + ( num[i] - '0' );
-	                }
-                    printf("prueba para status %d",dec);
-                    char *a= ChangeStatus(dec,sock);
-                    printf("%s",a);
+                    for (int i = 0; i < len; i++)
+                    {
+                        dec = dec * 10 + (num[i] - '0');
+                    }
+                    printf("prueba para status %d", dec);
+                    char *a = ChangeStatus(dec, sock);
+                    printf("%s", a);
                     break;
                 default:
                     printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
@@ -231,8 +233,9 @@ int sendMessage(char *message, int successfulSocket)
     return successfulSocket;
 }
 
-char * ChangeStatus(int status, int successfulSocket){
-/* 
+char *ChangeStatus(int status, int successfulSocket)
+{
+    /* 
     {
 	"action": "CHANGE_STATUS",
 	"user": "<id_del_usuario>",
@@ -252,12 +255,13 @@ char * ChangeStatus(int status, int successfulSocket){
 
      */
 
-    if (status == 1){
+    if (status == 1)
+    {
 
-        cJSON *RequestCambioEstado= cJSON_CreateObject();
-        cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
-        cJSON_AddStringToObject(RequestCambioEstado,"user",usuario.userID);
-        cJSON_AddStringToObject(RequestCambioEstado,"status","active");
+        cJSON *RequestCambioEstado = cJSON_CreateObject();
+        cJSON_AddStringToObject(RequestCambioEstado, "action", "CHANGE_STATUS");
+        cJSON_AddStringToObject(RequestCambioEstado, "user", usuario.userID);
+        cJSON_AddStringToObject(RequestCambioEstado, "status", "active");
         char *out = cJSON_Print(RequestCambioEstado);
         //printf("%s\n\n", out);
         successfulSocket = write(sock, out, strlen(out));
@@ -265,12 +269,13 @@ char * ChangeStatus(int status, int successfulSocket){
         free(out);
         return "Estado cambiado a active";
     }
-    if (status == 2){
+    if (status == 2)
+    {
 
-        cJSON *RequestCambioEstado= cJSON_CreateObject();
-        cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
-        cJSON_AddStringToObject(RequestCambioEstado,"user",usuario.userID);
-        cJSON_AddStringToObject(RequestCambioEstado,"status","busy");
+        cJSON *RequestCambioEstado = cJSON_CreateObject();
+        cJSON_AddStringToObject(RequestCambioEstado, "action", "CHANGE_STATUS");
+        cJSON_AddStringToObject(RequestCambioEstado, "user", usuario.userID);
+        cJSON_AddStringToObject(RequestCambioEstado, "status", "busy");
         char *out = cJSON_Print(RequestCambioEstado);
         //printf("%s\n\n", out);
         successfulSocket = write(sock, out, strlen(out));
@@ -279,12 +284,13 @@ char * ChangeStatus(int status, int successfulSocket){
 
         return "Estado cambiado a busy";
     }
-    if (status == 3){
+    if (status == 3)
+    {
 
-        cJSON *RequestCambioEstado= cJSON_CreateObject();
-        cJSON_AddStringToObject(RequestCambioEstado,"action","CHANGE_STATUS");
-        cJSON_AddStringToObject(RequestCambioEstado,"user",usuario.userID);
-        cJSON_AddStringToObject(RequestCambioEstado,"status","inactive");
+        cJSON *RequestCambioEstado = cJSON_CreateObject();
+        cJSON_AddStringToObject(RequestCambioEstado, "action", "CHANGE_STATUS");
+        cJSON_AddStringToObject(RequestCambioEstado, "user", usuario.userID);
+        cJSON_AddStringToObject(RequestCambioEstado, "status", "inactive");
         char *out = cJSON_Print(RequestCambioEstado);
         //printf("%s\n\n", out);
         successfulSocket = write(sock, out, strlen(out));
@@ -292,13 +298,12 @@ char * ChangeStatus(int status, int successfulSocket){
         free(out);
 
         return "Estado cambiado a inactive";
-    }else{
-
-
+    }
+    else
+    {
 
         return "No se pudo realizar el cambio";
     }
-
 }
 
 void conn(int successfulSocket)
@@ -315,8 +320,9 @@ void conn(int successfulSocket)
         connected = true;
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-        printf("%s\n", recvBuffer);
-
+        // printf("%s\n", recvBuffer);
+        // printf("buffer size: %ld\n", sizeof(recvBuffer));
+        // fflush(stdout);
 
         //Aqui tengo que guardar la informaicon del usuario
         //es en donde tengo que parsear y guardar en usuario
@@ -324,18 +330,22 @@ void conn(int successfulSocket)
         //buffer es lo que contiene el string donde viene lo que es la estructura del json
         //se crea un objeto json, donde lo parseado se asigna
         cJSON *json = cJSON_Parse(recvBuffer);
+
         cJSON *pruebaid = cJSON_GetObjectItem(json, "user");
-        cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid,"id");
-        cJSON *pruebanamereal = cJSON_GetObjectItem(pruebaid,"name");
-        cJSON *pruebastatusreal = cJSON_GetObjectItem(pruebaid,"status");
+        cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid, "id");
+        cJSON *pruebanamereal = cJSON_GetObjectItem(pruebaid, "name");
+        cJSON *pruebastatusreal = cJSON_GetObjectItem(pruebaid, "status");
         char *idusuario = cJSON_Print(pruebaidreal);
-        char *nameusuario = cJSON_Print(pruebaidreal);
+        char *nameusuario = cJSON_Print(pruebanamereal);
         char *statususuario = cJSON_Print(pruebaidreal);
-        strcpy (usuario.userID,idusuario);
-        strcpy (usuario.name,nameusuario);
-        strcpy (usuario.status,statususuario);
-        //printf("%s\n", outtt);
-        printf("este es el primer id o\n\n");
+        strcpy(usuario.userID, idusuario);
+        strcpy(usuario.name, nameusuario);
+        strcpy(usuario.status, statususuario);
+
+        strcpy(idParaMandar, usuario.userID);
+        
+        fflush(stdout);
+
 
     }
 }
