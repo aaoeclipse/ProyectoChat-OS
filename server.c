@@ -308,14 +308,24 @@ char* JSONfromUser(struct user givenUser){
 
     //Response del server del cliente
     cJSON *usr = NULL;
-
+    cJSON_CreateArray ;
     cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
+    cJSON_AddStringToObject(Response_del_server_del_cliente,"action","LIST_USER");
     cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
+    cJSON_AddStringToObject(usr,"[",sizeof("["));
     cJSON_AddStringToObject(usr,"id",id);
     cJSON_AddStringToObject(usr,"name", name);
     cJSON_AddStringToObject(usr,"status",status);
-    
-    cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
+    // id
+    snprintf(id, sizeof(id), "%d", givenUser.userID);
+    // name
+    strcpy(name, givenUser.name);
+    // status
+    strcpy(status, givenUser.status);
+    cJSON_AddItemToObject(Response_del_server_del_cliente,"asdf", usr = cJSON_CreateObject());
+    cJSON_AddStringToObject(usr,"id","something");
+    cJSON_AddStringToObject(usr,"name", "name");
+    cJSON_AddStringToObject(usr,"status","status");
 
     out = cJSON_Print(Response_del_server_del_cliente);
     infoOfUser = out;
