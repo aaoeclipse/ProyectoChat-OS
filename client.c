@@ -113,7 +113,7 @@ int main(int argc, char const *argv[])
                     // Broadcast message
                     break;
                 default:
-                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
+                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive\n");
                     break;
                 }
             }
