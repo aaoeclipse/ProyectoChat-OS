@@ -26,28 +26,31 @@ struct user
 	"status": "<status>" 
     */
     int userID;
-    char *name;
-    char *status;
+    char name[100];
+    char status[100];
     // Extra
-    char *address;
+    char address[100];
     int fileDescriptor;
 };
 //GLOBAL VARIABLES
 //Threads
 pthread_t threads[MAX_USERS];
+char globalString[1024];
 // Aqui es donde se van a guardar los usuairos, va a ser en la RAM
 struct user users[MAX_USERS];
-struct user newUsers[MAX_USERS];
+struct user availableUsers[MAX_USERS];
 // METHODS
 void *createUser(void *usr);
 int main(int argc, char const *argv[]);
 void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser);
 // void sendMessage(char *message, int successfulSocket, char *fromUser, int toUser);
 int broadcastMessage(char *message);
+// muestra toda la lista de
 char *listUsers();
 char* LastcharDel(char* message);
 void initializeUsers();
-
+char* withSemi(char *stringWithoutSemi);
+void GetAvailableUsers();
 
 
 // creates user with his pthread
@@ -201,6 +204,7 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
     // TODO:
     //      1. Mandar el mensaje a esa persona
     //      2. No se sabe como el usuario va a estar escuchando
+    
     message = LastcharDel(message);
     // scanf("test: %s", users[0].name);
     printf("user: %s\n", users[0].name);
@@ -241,17 +245,18 @@ char *listUsers()
 }
 
 char* withSemi(char *stringWithoutSemi){
-    char* semi = "\"";
-    strcat(semi, stringWithoutSemi);
-    strcat(semi, "\"");
-    printf("semi: %s", semi);
-    return semi;
-
+    memset(globalString, 0, sizeof(globalString));
+    char semi[50] = "\"";
+    fflush(stdout);
+    strcat(globalString, semi);
+    strcat(globalString, stringWithoutSemi);
+    strcat(globalString, "\"");
+    return (char *) globalString;
 }
 char* respuestaDeJSON(struct user currUser){
     char *out;
-    char *name;
-    char *status;
+    char name;
+    char status;
     
     name = currUser.name;
     name = withSemi(name);
@@ -290,12 +295,12 @@ void initializeUsers(){
     }
 }
 
-void availableUsers(){
-    int availableUsers = 0;
-    memset(newUsers, 0, sizeof(newUsers));
+void GetAvailableUsers(){
+    int availableUsersCounter = 0;
+    memset(availableUsers, 0, sizeof(availableUsers));
     for (int i = 0; i < MAX_USERS; i++){
         if (users[i].userID != -1){
-            newUsers[availableUsers] = users[i];
+            availableUsers[availableUsersCounter] = users[i];
         }
     }
     // return newUsers

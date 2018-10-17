@@ -123,12 +123,6 @@ int main(int argc, char const *argv[])
                 if (sendSuccessful < 0)
                     printf("ERROR writing to socket\n");
                 memset(recvBuffer, 0, sizeof(recvBuffer));
-                // successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-                // if (successfulSocket < 0)
-                // {
-                //     printf("error reading from socket\n");
-                //     wantToExit = true;
-                // }
             }
         }
     }
