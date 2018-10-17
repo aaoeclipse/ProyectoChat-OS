@@ -216,16 +216,51 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
     // return resultSocket;
 }
 
-char *listUsers()
-{
+char *listUsers() {
+    FILE *f = fopen("file.txt", "w");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        break;
+    }
+
+    const char *intro [200];
+    *intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\": [";
+    fputs(f, *intro);
+
+    for (int i = 0; i < MAX_USERS; i++) {
+        if (avialableUsers[i].userID < 0) {
+            break:
+        }
+        /*Sirve para imprimir y guardar en el file*/
+        fputs(f, createUserJson(avialableUsers[i].userID, avialableUsers[i].name, avialableUsers[i].status));
+        fputs(f,",");
+    }
     /* TODO:
         1. sacar todos los users
         2. de users -> JSON
         3. Mandar a la persona que pidio
     */
-    return "0";
+    fp = fopen("file.txt","r");
+    c = fgetc(fp);
+    printf("%c", c);
+    fclose(f);
 }
 
+char createUserJson(char id, char name, char status){
+    //char userText [1000];
+    char idtext []= "{\"id\": ";
+    char nametext = "\n\"name\": ";
+    char statustext = "\n\"status\": ";
+    char endtext = "}";
+    strcat(idtext, id);
+    strcat(nametext, name);
+    strcat(statustext, status);
+    strcat(idtext, nametext);
+    strcat(idtext, statustext);
+    strcat(idtext, endtext);
+    return idtext;
+}
 char* withSemi(char *stringWithoutSemi){
     memset(globalString, 0, sizeof(globalString));
     char semi[50] = "\"";
