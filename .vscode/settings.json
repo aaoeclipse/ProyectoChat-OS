@@ -36,6 +36,8 @@
         "optional": "c",
         "in.h": "c",
         "stdbool.h": "c",
-        "time.h": "c"
-    }
+        "time.h": "c",
+        "unistd.h": "c"
+    },
+    "zenMode.centerLayout": false
 }
