@@ -199,7 +199,7 @@ int commandFunctions(char *command)
             fflush(stdout);
             return 2;
         }
-        if ('s' == command[1])
+        if ('c' == command[1])
         {
             printf("Change Status\n");
             fflush(stdout);
