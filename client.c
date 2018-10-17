@@ -27,6 +27,7 @@ int commandFunctions(char *command);
 void conn();
 char *LastcharDel(char *name);
 void *listening(void *sock);
+char * ChangeStatus(int status, int successfulSocket);
 
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
@@ -55,6 +56,10 @@ struct user usuario;
 
 int main(int argc, char const *argv[])
 {
+    int status;
+    char *num;
+    int len;                    
+    int dec;
     wantToExit = false;
     struct sockaddr_in address;
     char exitcommand = 'q';
@@ -130,10 +135,10 @@ int main(int argc, char const *argv[])
                 case 3:
                     //c 1 o //c 2 o //c 3
                     //Change status
-                    int status;
-                    char *num;
-                    int len;                    
-                    int dec;
+                    //int status;
+                    //char *num;
+                    //int len;                    
+                    //int dec;
                     num = buffer[(strlen(buffer)-1)];
                     len = strlen(num);
                     for(int i=0; i<len; i++){

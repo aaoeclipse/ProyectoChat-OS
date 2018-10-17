@@ -221,19 +221,19 @@ char *listUsers() {
     if (f == NULL)
     {
         printf("Error opening file!\n");
-        break;
+        //break;
     }
-
+else{
     const char *intro [200];
     *intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\": [";
     fputs(f, *intro);
 
     for (int i = 0; i < MAX_USERS; i++) {
-        if (avialableUsers[i].userID < 0) {
-            break:
+        if (availableUsers[i].userID < 0) {
+            break;
         }
         /*Sirve para imprimir y guardar en el file*/
-        fputs(f, createUserJson(avialableUsers[i].userID, avialableUsers[i].name, avialableUsers[i].status));
+        fputs(f, createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status));
         fputs(f,",");
     }
     /* TODO:
@@ -241,10 +241,12 @@ char *listUsers() {
         2. de users -> JSON
         3. Mandar a la persona que pidio
     */
-    fp = fopen("file.txt","r");
-    c = fgetc(fp);
+    
+    FILE *fp = fopen("file.txt","r");
+    char *c = fgetc(fp);
     printf("%c", c);
-    fclose(f);
+    fclose(fp);
+}
 }
 
 char createUserJson(char id, char name, char status){
