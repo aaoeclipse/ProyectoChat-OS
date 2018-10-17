@@ -295,12 +295,12 @@ void initializeUsers(){
     }
 }
 
-void GetAvailableUsers(){
-    int availableUsersCounter = 0;
-    memset(availableUsers, 0, sizeof(availableUsers));
+void availableUsers(){
+    int counter = 0;
+    memset(avialableUsers, 0, sizeof(avialableUsers));
     for (int i = 0; i < MAX_USERS; i++){
         if (users[i].userID != -1){
-            availableUsers[availableUsersCounter] = users[i];
+            avialableUsers[counter] = users[i];
         }
     }
     // return newUsers
