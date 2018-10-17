@@ -45,17 +45,18 @@ int main(int argc, char const *argv[]);
 void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser);
 // @params struct user
 // @return el usern en forma de JSON
-char* JSONfromUser(struct user givenUser);
+char *JSONfromUser(struct user givenUser);
 // void sendMessage(char *message, int successfulSocket, char *fromUser, int toUser);
 int broadcastMessage(char *message);
 // muestra toda la lista de
 char *listUsers();
-char* LastcharDel(char* message);
+char *LastcharDel(char *message);
 void initializeUsers();
-char* withSemi(char *stringWithoutSemi);
+char *withSemi(char *stringWithoutSemi);
 void GetAvailableUsers();
-char* respuestaDeJSON(struct user createUser);
-
+char *respuestaDeJSON(struct user createUser);
+void mensajeJSON(struct user *userSender, struct user userResiver, char *message);
+void firstJSONRecieve(char *informacionInutil, struct user newUser);
 
 // creates user with his pthread
 void *createUser(void *usr)
@@ -85,12 +86,17 @@ void *createUser(void *usr)
             }
             // TODO:
             //    1. String bufferUser -> JSON
-            //    2. JSON -> que es? MESSAGE, BROADCAST, LIST_USER, BYE
+            //    2. JSON -> que es? LIST_USER, BYE
             //       2.1 HACER ESAS 5 FUNCIONES
-            // Sending Confirmation
-            sendMessage(bufferUser, userInfo->fileDescriptor, userInfo->name, 1);
 
-            write(userInfo->fileDescriptor, accepted, strlen(accepted));
+            /* // Sending Confirmation
+            sendMessage(bufferUser, userInfo->fileDescriptor, userInfo->name, 1); */
+            recivedJSON(bufferUser, userInfo);
+
+            // TODO: PARSEAR
+            // mensajeJSON( userInfo, users[0], bufferUser)
+
+            // write(userInfo->fileDescriptor, accepted, strlen(accepted));
             sleep(0.1);
         }
         else
@@ -115,7 +121,7 @@ int main(int argc, char const *argv[])
     char buffer[1024] = {0};
     char *hello = "Hello from server";
     char *acceptedMssg = "fixthis"; //FIXME: hacer un menajse con el id
-    fflush(stdout); // printf will not work without this
+    fflush(stdout);                 // printf will not work without this
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -169,10 +175,11 @@ int main(int argc, char const *argv[])
 
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
+
             if (rc < 0)
                 printf("ERROR in pthread");
             bzero(buffer, sizeof(buffer));
-            JSONfromUser(users[counter]);
+            // JSONfromUser(users[counter]);
             respuestaDeJSON(users[counter]);
             counter = counter + 1;
         }
@@ -196,7 +203,7 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
     // TODO:
     //      1. Mandar el mensaje a esa persona
     //      2. No se sabe como el usuario va a estar escuchando
-    
+
     message = LastcharDel(message);
     // scanf("test: %s", users[0].name);
     printf("user: %s\n", users[0].name);
@@ -270,9 +277,10 @@ char* withSemi(char *stringWithoutSemi){
     strcat(globalString, semi);
     strcat(globalString, stringWithoutSemi);
     strcat(globalString, "\"");
-    return (char *) globalString;
+    return (char *)globalString;
 }
-char* respuestaDeJSON(struct user currUser){
+char *respuestaDeJSON(struct user currUser)
+{
     char *out;
     char id[10];
     char name[100];
@@ -288,54 +296,58 @@ char* respuestaDeJSON(struct user currUser){
     cJSON *usr = NULL;
 
     cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
-    cJSON_AddStringToObject(Response_del_server_del_cliente,"status","ok");
+    cJSON_AddStringToObject(Response_del_server_del_cliente, "status", "ok");
     cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
-    cJSON_AddStringToObject(usr,"id",id);
-    cJSON_AddStringToObject(usr,"name", name);
-    cJSON_AddStringToObject(usr,"status",status);
+    cJSON_AddStringToObject(usr, "id", id);
+    cJSON_AddStringToObject(usr, "name", name);
+    cJSON_AddStringToObject(usr, "status", status);
     out = cJSON_Print(Response_del_server_del_cliente);
     write(currUser.fileDescriptor, out, strlen(out));
-    
+
     // printf("%s\n\n", out);
     cJSON_Delete(Response_del_server_del_cliente);
     free(out);
 }
 
-
-char* LastcharDel(char* name)
+char *LastcharDel(char *name)
 {
     int i = 0;
-    while(name[i] != '\0')
+    while (name[i] != '\0')
     {
         i++;
-         
     }
-    name[i-1] = '\0';
+    name[i - 1] = '\0';
     return name;
 }
 
-void initializeUsers(){
-    for (int i = 0; i < MAX_USERS; i++){
+void initializeUsers()
+{
+    for (int i = 0; i < MAX_USERS; i++)
+    {
         users[i].userID = -1;
     }
 }
 
-void GetAvailableUsers(){
+void GetAvailableUsers()
+{
     int availableUsersCounter = 0;
     memset(availableUsers, 0, sizeof(availableUsers));
-    for (int i = 0; i < MAX_USERS; i++){
-        if (users[i].userID != -1){
+    for (int i = 0; i < MAX_USERS; i++)
+    {
+        if (users[i].userID != -1)
+        {
             availableUsers[availableUsersCounter] = users[i];
         }
     }
 }
 
-char* JSONfromUser(struct user givenUser){
+char *JSONfromUser(struct user givenUser)
+{
     char *out;
     char id[10];
     char name[100];
     char status[100];
-    char* infoOfUser;
+    char *infoOfUser;
     // id
     snprintf(id, sizeof(id), "%d", givenUser.userID);
     // name
@@ -345,24 +357,23 @@ char* JSONfromUser(struct user givenUser){
 
     //Response del server del cliente
     cJSON *usr = NULL;
-    cJSON_CreateArray ;
+    cJSON_CreateArray;
     cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
-    cJSON_AddStringToObject(Response_del_server_del_cliente,"action","LIST_USER");
+    cJSON_AddStringToObject(Response_del_server_del_cliente, "action", "LIST_USER");
     cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
-    cJSON_AddStringToObject(usr,"[",sizeof("["));
-    cJSON_AddStringToObject(usr,"id",id);
-    cJSON_AddStringToObject(usr,"name", name);
-    cJSON_AddStringToObject(usr,"status",status);
+    cJSON_AddStringToObject(usr, "id", id);
+    cJSON_AddStringToObject(usr, "name", name);
+    cJSON_AddStringToObject(usr, "status", status);
     // id
     snprintf(id, sizeof(id), "%d", givenUser.userID);
     // name
     strcpy(name, givenUser.name);
     // status
     strcpy(status, givenUser.status);
-    cJSON_AddItemToObject(Response_del_server_del_cliente,"asdf", usr = cJSON_CreateObject());
-    cJSON_AddStringToObject(usr,"id","something");
-    cJSON_AddStringToObject(usr,"name", "name");
-    cJSON_AddStringToObject(usr,"status","status");
+    cJSON_AddItemToObject(Response_del_server_del_cliente, "asdf", usr = cJSON_CreateObject());
+    cJSON_AddStringToObject(usr, "id", "something");
+    cJSON_AddStringToObject(usr, "name", "name");
+    cJSON_AddStringToObject(usr, "status", "status");
 
     out = cJSON_Print(Response_del_server_del_cliente);
     infoOfUser = out;
@@ -372,3 +383,81 @@ char* JSONfromUser(struct user givenUser){
     return infoOfUser;
 }
 
+void errorResponder(char *message)
+{
+    char *out;
+    //En caso de un error
+    cJSON *Error = cJSON_CreateObject();
+    cJSON_AddStringToObject(Error, "status", "ERROR");
+    cJSON_AddStringToObject(Error, "message", message);
+    out = cJSON_Print(Error);
+    printf("%s\n\n", out);
+    cJSON_Delete(Error);
+    free(out);
+}
+
+void mensajeJSON(struct user *userSender, struct user userResiver, char *message)
+{
+    char *out;
+    cJSON *Mensaje = cJSON_CreateObject();
+    cJSON_AddStringToObject(Mensaje, "action", "RECEIVE_MESSAGE");
+    cJSON_AddStringToObject(Mensaje, "from", userSender->userID);
+    cJSON_AddStringToObject(Mensaje, "to", userResiver.userID);
+    cJSON_AddStringToObject(Mensaje, "message", message);
+    out = cJSON_Print(Mensaje);
+    write(userResiver.fileDescriptor, out, strlen(out));
+    // printf("%s\n\n", out);
+    cJSON_Delete(Mensaje);
+    free(out);
+}
+
+void recivedJSON(char *info, struct user *actualUser)
+{
+    char *reciver;
+    int compare;
+    char *SEND = "SEND_MESSAGE";
+    char *LIST = "LIST_USER";
+    char *CHANGE = "CHANGE_STATUS";
+    cJSON *json = cJSON_Parse(info);
+    cJSON *getAction = cJSON_GetObjectItem(json, "action");
+    char *action = cJSON_Print(getAction);
+    compare = strncmp(SEND,action, sizeof(SEND));
+    if (compare == 0){
+        printf("SENT MESSAGE");
+        // SEND MESSAGE
+        cJSON *getID = cJSON_GetObjectItem(json, "to");
+        // test char
+        char id =  cJSON_Print(getID);
+        int idInt = id - '0';
+        cJSON *getMessage = cJSON_GetObjectItem(json, "message");
+        char *message =  cJSON_Print(getMessage);
+        mensajeJSON(actualUser, users[idInt], message);
+    }
+    compare = strncmp(LIST,action, sizeof(LIST));
+    if (compare == 0){
+        // LIST USER
+        printf("LIST USER");
+    }
+    compare = strncmp(CHANGE,action, sizeof(CHANGE));
+    if (compare == 0){
+        // CHANGE USER MODE
+        printf("Change User");
+        
+    }
+
+    /* cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid, "id");
+    cJSON *pruebanamereal = cJSON_GetObjectItem(pruebaid, "name");
+    cJSON *pruebastatusreal = cJSON_GetObjectItem(pruebaid, "status");
+    char *idusuario = cJSON_Print(pruebaidreal);
+    char *nameusuario = cJSON_Print(pruebaidreal);
+    char *statususuario = cJSON_Print(pruebaidreal);
+    strcpy(usuario.userID, idusuario);
+    strcpy(usuario.name, nameusuario);
+    strcpy(usuario.status, statususuario); */
+}
+
+void firstJSONRecieve(char *informacionInutil, struct user newUser)
+{
+    printf("wooo");
+    respuestaDeJSON(newUser);
+}
