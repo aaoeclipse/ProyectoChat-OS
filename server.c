@@ -310,9 +310,13 @@ char* JSONfromUser(struct user givenUser){
     cJSON *usr = NULL;
 
     cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
+    cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
     cJSON_AddStringToObject(usr,"id",id);
     cJSON_AddStringToObject(usr,"name", name);
     cJSON_AddStringToObject(usr,"status",status);
+    
+    cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
+
     out = cJSON_Print(Response_del_server_del_cliente);
     infoOfUser = out;
     printf("%s\n\n", out);
