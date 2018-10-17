@@ -140,7 +140,7 @@ int main(int argc, char const *argv[])
 		                dec = dec * 10 + ( num[i] - '0' );
 	                }
                     printf("prueba para status %d",dec);
-                    char *a= ChangeStatus(dec);
+                    char *a= ChangeStatus(dec,sock);
                     printf("%s",a);
                     break;
                 default:
@@ -226,7 +226,7 @@ int sendMessage(char *message, int successfulSocket)
     return successfulSocket;
 }
 
-char * ChangeStatus(int status){
+char * ChangeStatus(int status, int successfulSocket){
 /* 
     {
 	"action": "CHANGE_STATUS",
@@ -255,6 +255,7 @@ char * ChangeStatus(int status){
         cJSON_AddStringToObject(RequestCambioEstado,"status","active");
         char *out = cJSON_Print(RequestCambioEstado);
         //printf("%s\n\n", out);
+        successfulSocket = write(sock, out, strlen(out));
         cJSON_Delete(RequestCambioEstado);
         free(out);
         return "Estado cambiado a active";
@@ -267,6 +268,7 @@ char * ChangeStatus(int status){
         cJSON_AddStringToObject(RequestCambioEstado,"status","busy");
         char *out = cJSON_Print(RequestCambioEstado);
         //printf("%s\n\n", out);
+        successfulSocket = write(sock, out, strlen(out));
         cJSON_Delete(RequestCambioEstado);
         free(out);
 
@@ -280,6 +282,7 @@ char * ChangeStatus(int status){
         cJSON_AddStringToObject(RequestCambioEstado,"status","inactive");
         char *out = cJSON_Print(RequestCambioEstado);
         //printf("%s\n\n", out);
+        successfulSocket = write(sock, out, strlen(out));
         cJSON_Delete(RequestCambioEstado);
         free(out);
 
@@ -315,7 +318,7 @@ void conn(int successfulSocket)
 
         //buffer es lo que contiene el string donde viene lo que es la estructura del json
         //se crea un objeto json, donde lo parseado se asigna
-        cJSON *json = cJSON_Parse(buffer);
+        cJSON *json = cJSON_Parse(recvBuffer);
         cJSON *pruebaid = cJSON_GetObjectItem(json, "user");
         cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid,"id");
         cJSON *pruebanamereal = cJSON_GetObjectItem(pruebaid,"name");
