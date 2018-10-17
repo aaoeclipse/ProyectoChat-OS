@@ -157,7 +157,7 @@ int main(int argc, char const *argv[])
             }
             else
             {
-                sendSuccessful = sendMessage(buffer, sock);
+                sendSuccessful = sendPrivateMessage(buffer, sock);
                 if (sendSuccessful < 0)
                     printf("ERROR writing to socket\n");
                 memset(recvBuffer, 0, sizeof(recvBuffer));
@@ -232,6 +232,52 @@ int sendMessage(char *message, int successfulSocket)
     }
     return successfulSocket;
 }
+
+int sendPrivateMessage(char *message, int successfulSocket)
+{
+    /* 
+    "action": "SEND_MESSAGE",
+	"from": "<idusuario>",
+	"to": "<idusuario>",
+	"message": "message"
+
+    //Estructura de JSON de mensaje
+    printf("Estructura del json de mensaje\n");
+    cJSON *Mensaje= cJSON_CreateObject();
+    cJSON_AddStringToObject(Mensaje,"action","SEND_MESSAGE");
+    cJSON_AddStringToObject(Mensaje,"from","<idusuario>");
+    cJSON_AddStringToObject(Mensaje,"to","<idusuario>");
+    cJSON_AddStringToObject(Mensaje,"message","Hola");
+    out = cJSON_Print(Mensaje);
+    printf("%s\n\n", out);
+    cJSON_Delete(Mensaje);
+    free(out);
+
+     */
+
+    //Estructura de JSON de mensaje
+    //printf("Estructura del json de mensaje\n");
+    char *paramensaje;
+    cJSON *Mensaje= cJSON_CreateObject();
+    cJSON_AddStringToObject(Mensaje,"action","SEND_MESSAGE");
+    cJSON_AddStringToObject(Mensaje,"from",idParaMandar);
+    cJSON_AddStringToObject(Mensaje,"to",usuario.userID);
+    cJSON_AddStringToObject(Mensaje,"message",message);
+    paramensaje = cJSON_Print(Mensaje);
+    //printf("%s\n\n", paramensaje);
+    cJSON_Delete(Mensaje);
+    free(paramensaje);
+
+    successfulSocket = write(sock, paramensaje, strlen(paramensaje));
+
+    if (successfulSocket < 0)
+    {
+        printf("error writing to socket\n");
+        fflush(stdout);
+    }
+    return successfulSocket;
+}
+
 
 char *ChangeStatus(int status, int successfulSocket)
 {
