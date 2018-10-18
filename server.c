@@ -54,7 +54,7 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
 char *noQuotes(char *withQuotes);
 // @params struct user
 // @return el usern en forma de JSON
-char *JSONfromUser(struct user givenUser);
+char *JSONfromUser(struct user givenUser, int sockerUSER);
 char *changeStatusUserMessage(struct user *currUser);
 // void sendMessage(char *message, int successfulSocket, char *fromUser, int toUser);
 int broadcastMessage(char *message);
@@ -528,7 +528,7 @@ void GetAvailableUsers()
     }
 }
 
-char *JSONfromUser(struct user givenUser)
+char *JSONfromUser(struct user givenUser, int socketUSER)
 {
     char *out;
     char id[25];
@@ -551,20 +551,10 @@ char *JSONfromUser(struct user givenUser)
     cJSON_AddStringToObject(usr, "id", id);
     cJSON_AddStringToObject(usr, "name", name);
     cJSON_AddStringToObject(usr, "status", status);
-    // id
-    // snprintf(id, sizeof(id), "%d", givenUser.userID);
-    strcpy(id, givenUser.userID);
-    // name
-    strcpy(name, givenUser.name);
-    // status
-    strcpy(status, givenUser.status);
-    cJSON_AddItemToObject(Response_del_server_del_cliente, "asdf", usr = cJSON_CreateObject());
-    cJSON_AddStringToObject(usr, "id", "something");
-    cJSON_AddStringToObject(usr, "name", "name");
-    cJSON_AddStringToObject(usr, "status", "status");
 
     out = cJSON_Print(Response_del_server_del_cliente);
-    infoOfUser = out;
+    write(socketUSER, out, strlen(out));
+
     printf("(557~) JSON FROM USER: %s\n\n", out);
     cJSON_Delete(Response_del_server_del_cliente);
     free(out);
@@ -666,12 +656,14 @@ void recivedJSON(char *info, struct user *actualUser)
         {
             cJSON *getID = cJSON_GetObjectItem(json, "user");
             char *usersID = cJSON_Print(getID);
+            // printf("%s",usersID);
+            strcpy(usersID, noQuotes(usersID));
             int indexUsuario = indexFromID(usersID);
             if (indexUsuario >= 0)
             {
                 fflush(stdout);
-                char *jsonInfoUser = JSONfromUser(availableUsers[indexUsuario]);
-                write(actualUser->fileDescriptor, jsonInfoUser, strlen(jsonInfoUser));
+                JSONfromUser(availableUsers[indexUsuario], actualUser->fileDescriptor);
+
                 // mensajeJSON(actualUser, users[idDelUsuario], message);
                 successfullMessage(actualUser->fileDescriptor);
             }
@@ -733,8 +725,8 @@ int indexFromID(char *id)
         equals = strncmp(id, availableUsers[i].userID, 10);
         if (equals == 0)
         {
-            printf("%s = %s Y tiene de socket %d", id, availableUsers[i].userID, availableUsers[i].fileDescriptor);
-            printf("retornando!\n");
+            // printf("%s = %s Y tiene de socket %d", id, availableUsers[i].userID, availableUsers[i].fileDescriptor);
+            // printf("retornando!\n");
             fflush(stdout);
             return i;
         }

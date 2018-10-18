@@ -125,7 +125,7 @@ int main(int argc, char const *argv[])
         {
             // restart the buffer
             memset(buffer, 0, sizeof(buffer));
-            printf("%s: ", username);
+            printf("\n%s: ", username);
             // ask for input
             fgets(buffer, sizeof(buffer), stdin);
             fflush(stdin);
@@ -141,7 +141,7 @@ int main(int argc, char const *argv[])
 
                 case 1:
                     // Private message
-                    printf("Private Message Target Changing");
+                    printf("");
                     char prueba[1024];
 
                     //char *prueba;
@@ -231,7 +231,7 @@ int main(int argc, char const *argv[])
         }
     }
 
-    printf("%s\n", buffer);
+    // printf("%s\n", buffer);
 
     return 0;
 }
@@ -343,10 +343,8 @@ int sendMessage(char *message, int successfulSocket)
     cJSON *usr = cJSON_CreateObject();
     cJSON_AddStringToObject(usr, "host", HOST);
     cJSON_AddStringToObject(usr, "origin", ORIGIN);
-    cJSON_AddStringToObject(usr, "user", username);
+    cJSON_AddStringToObject(usr, "user", message);
     out = cJSON_Print(usr);
-    printf(out);
-    fflush(stdout);
     successfulSocket = write(sock, out, strlen(out));
     cJSON_Delete(usr);
     free(out);
@@ -426,20 +424,6 @@ int sendPrivateMessage(char *message, int successfulSocket)
 
 char * ListUsersUnico(char* id,int successfulSocket){
 
-/*
-
-//Estructura del Json para listar usuarios (server response) un usuario
-    printf("Estructura del json de listar usuarios (Request) un usuario\n");
-    cJSON *ListUsersRequestUnico= cJSON_CreateObject();
-    cJSON_AddStringToObject(ListUsersRequestUnico,"action","LIST_USER");
-    cJSON_AddStringToObject(ListUsersRequestUnico,"user","<id_del_usuario>");
-    out = cJSON_Print(ListUsersRequestUnico);
-    printf("%s\n\n", out);
-    cJSON_Delete(ListUsersRequestUnico);
-    free(out);
-
-*/
-
     //Estructura del Json para listar usuarios (server response) un usuario
     //printf("Estructura del json de listar usuarios (Request) un usuario\n");
     cJSON *ListUsersRequestUnico= cJSON_CreateObject();
@@ -448,14 +432,9 @@ char * ListUsersUnico(char* id,int successfulSocket){
     char *out;
     out = cJSON_Print(ListUsersRequestUnico);
     successfulSocket = write(sock, out, strlen(out));
-
 //    printf("%s\n\n", out);
     cJSON_Delete(ListUsersRequestUnico);
     free(out);
-
-
-
-
 }
 
 
@@ -643,7 +622,7 @@ void *listening(void *sock)
                     cJSON *MENSAJESOLOOK = cJSON_GetObjectItem(json, "status");
                     char *mensajeunicok = cJSON_Print(MENSAJESOLOOK);
                     noQuotes(mensajeunicok);
-                    printf("Server said: %s",mensajeunicok);
+                    // printf("Server said: %s",mensajeunicok);
                 
                 }else{
                 //PARSEAR PARA DEVOLVER EL ID 
@@ -676,7 +655,7 @@ void *listening(void *sock)
                 char *textoFrom = cJSON_Print(From);
                 noQuotes(textoFrom);
                 noQuotes(TextoMensaje);
-                printf("%s: ",textoFrom); 
+                printf("\n%s: ",textoFrom); 
                 printf("%s\n",TextoMensaje);
             }
             int ValidateUserConnected;
@@ -737,6 +716,6 @@ char *noQuotes(char* withQuotes){
 		withQuotes[i-1]=withQuotes[i];
 	}
 	withQuotes[i-1]='\0';
-	printf(withQuotes);
+	// printf(withQuotes);
     return withoutQuotes;
 }
