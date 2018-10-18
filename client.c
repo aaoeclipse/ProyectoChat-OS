@@ -151,11 +151,11 @@ int main(int argc, char const *argv[])
                     // printf("Paso la asignacion %s",pruebalist);
                     // strcpy(pruebalist,buffer);
                     strncpy(prueba, buffer + 3, sizeof(buffer) - 3);
-                    printf("prueba %s",prueba);                    
+                    //printf("prueba %s",prueba);                    
                     LastcharDel(prueba);
-                    printf("Se va a mandar al id ...%s...\n",prueba);
+                    //printf("Se va a mandar al id ...%s...\n",prueba);
                     strcpy(idParaMandar,prueba);
-                    printf("EL ID PARA MANDAR ES ...%s...\n",idParaMandar);
+                    //printf("EL ID PARA MANDAR ES ...%s...\n",idParaMandar);
                     fflush(stdout);
 
 
@@ -186,31 +186,31 @@ int main(int argc, char const *argv[])
                     //char *a = ChangeStatus(buffer[3], sock);
                     //printf("%s", a);
                     //printf("Llegue al solicitar un usuario\n");
-                    printf("prueba %s",buffer);
+                    //printf("prueba %s",buffer);
                     char pruebastatus[1024];
                     // printf("Paso la asignacion %s",pruebalist);
                     // strcpy(pruebalist,buffer);
                     strncpy(pruebastatus, buffer + 3, sizeof(buffer) - 3);
                     LastcharDel(pruebastatus);
-                    printf("prueba ...%s...",pruebastatus);
+                    //printf("prueba ...%s...",pruebastatus);
                     fflush(stdout);
                     char *statuschange = ChangeStatus(pruebastatus,sock);
                     break;
                 case 4:
-                    printf("Llegue al solicitar un usuario\n");
-                    printf("prueba %s",buffer);
+                    printf("Busqueda de usuario en especifico\n");
+                    //printf("prueba %s",buffer);
                     char pruebalist[1024];
                     // printf("Paso la asignacion %s",pruebalist);
                     // strcpy(pruebalist,buffer);
                     strncpy(pruebalist, buffer + 3, sizeof(buffer) - 3);
                     LastcharDel(pruebalist);
-                    printf("prueba ...%s...",pruebalist);
+                    ///printf("prueba ...%s...",pruebalist);
                     fflush(stdout);
                     char *unsolousuario = ListUsersUnico(pruebalist,sock);
                     break;
 
                 default:
-                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
+                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive \\u [id] - search specific user" );
                     break;
                 }
             }
@@ -332,7 +332,7 @@ int sendPrivateMessage(char *message, int successfulSocket)
 
 	//usuario.userID[i-1]='\0';
 //prueba
-        printf("id from: %s...\n",usuario.userID);
+        //printf("id from: %s...\n",usuario.userID);
     //strcpy (usuario.userID, noQuotes( usuario.userID));
     //strcpy (usuario.userID, noQuotes( usuario.userID));
     //strcpy (idParaMandar, LastcharDel( idParaMandar));
@@ -344,12 +344,12 @@ int sendPrivateMessage(char *message, int successfulSocket)
     paramensaje = cJSON_Print(Mensaje);
     //printf("%s\n\n", paramensaje);
     cJSON_Delete(Mensaje);
-    printf("id para mandar: %s\n",idParaMandar);
-    printf("UserID: %s\n",usuario.userID);
-    printf("mensaje: %s\n",message);
+    //printf("id para mandar: %s\n",idParaMandar);
+    //printf("UserID: %s\n",usuario.userID);
+    //printf("mensaje: %s\n",message);
 
 
-    printf("MENSAJE: %s\n", paramensaje);
+    //printf("MENSAJE: %s\n", paramensaje);
     successfulSocket = write(sock, paramensaje, strlen(paramensaje));
     free(paramensaje);
 
@@ -378,6 +378,18 @@ char * ListUsersUnico(char* id,int successfulSocket){
 
 */
 
+    //Estructura del Json para listar usuarios (server response) un usuario
+    //printf("Estructura del json de listar usuarios (Request) un usuario\n");
+    cJSON *ListUsersRequestUnico= cJSON_CreateObject();
+    cJSON_AddStringToObject(ListUsersRequestUnico,"action","LIST_USER");
+    cJSON_AddStringToObject(ListUsersRequestUnico,"user",id);
+    char *out;
+    out = cJSON_Print(ListUsersRequestUnico);
+    successfulSocket = write(sock, out, strlen(out));
+
+//    printf("%s\n\n", out);
+    cJSON_Delete(ListUsersRequestUnico);
+    free(out);
 
 
 
@@ -497,7 +509,7 @@ void conn(int successfulSocket)
         connected = true;
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-        printf("%s\n", recvBuffer);
+        //printf("%s\n", recvBuffer);
         // printf("buffer size: %ld\n", sizeof(recvBuffer));
         // fflush(stdout);
 
@@ -515,12 +527,12 @@ void conn(int successfulSocket)
         char *idusuario = cJSON_Print(pruebaidreal);
         char *nameusuario = cJSON_Print(pruebanamereal);
         char *statususuario = cJSON_Print(pruebastatusreal);
-        printf("%s\n%s\n%s\n",idusuario,nameusuario,statususuario);
+        //printf("%s\n%s\n%s\n",idusuario,nameusuario,statususuario);
         strcpy(usuario.userID, idusuario);
         strcpy(usuario.name, nameusuario);
         strcpy(usuario.status, statususuario);
         // noQuotes(usuario.userID);
-        printf("ESTE ES EL ID MIO: %s",usuario.userID);
+        //printf("ESTE ES EL ID MIO: %s",usuario.userID);
         strcpy(idParaMandar, usuario.userID);
 
         fflush(stdout);
@@ -554,14 +566,14 @@ void *listening(void *sock)
             cJSON *json = cJSON_Parse(bufferUser);
             cJSON *pruebaprint = cJSON_GetArrayItem(json, 0);
             char *pruebasprint = cJSON_Print(pruebaprint);
-            printf("el item 0 es ...%s...\n",pruebasprint);
+            //printf("el item 0 es ...%s...\n",pruebasprint);
             noQuotes(pruebasprint);
-            printf("el item 0 es ...%s...\n",pruebasprint);
+            //printf("el item 0 es ...%s...\n",pruebasprint);
 
             int tammao = cJSON_GetArraySize(json);
             int validateok;
             validateok = strncmp(pruebasprint,"OK",2);
-            printf("nos resulta %d",validateok);
+            //printf("nos resulta %d",validateok);
             if(validateok==0 ){
                 if (tammao == 1){
                 //PARSEAR PARA DEVOLVER SOLO EL OK 
