@@ -10,4 +10,21 @@
 "status": active},{"id": BJ541,	
 "name": df,	
 "status": active},]
+}{ 
+"action": "LIST_USER",
+	"users":[{"id": 00OKA,	
+"name": jorge,	
+"status": active},{"id": MOK22,	
+"name": jorge,	
+"status": active},{"id": 2JHGC,	
+"name": jorge,	
+"status": active},{"id": 6KK6A,	
+"name": jorge,	
+"status": active},{"id": A3IM5,	
+"name": jorge,	
+"status": active},{"id": B5I95,	
+"name": jorge,	
+"status": active},{"id": 95O7G,	
+"name": jorge,	
+"status": active},]
 }

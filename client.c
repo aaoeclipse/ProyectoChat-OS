@@ -27,9 +27,12 @@ int commandFunctions(char *command);
 void conn();
 char *LastcharDel(char *name);
 void *listening(void *sock);
-char *ChangeStatus(int status, int successfulSocket);
+char *ChangeStatus(char status[1024], int successfulSocket);
 int sendPrivateMessage(char *message, int successfulSocket);
 char *noQuotes(char* withQuotes);
+char * ListUsersMultiple(int successfulSocket);
+char * ListUsersUnico(char* id,int successfulSocket);
+
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
 char idParaMandar[25];
@@ -119,6 +122,7 @@ int main(int argc, char const *argv[])
             printf("%s: ", username);
             // ask for input
             fgets(buffer, sizeof(buffer), stdin);
+            fflush(stdin);
             // check if its a command
             if (buffer[0] == '\\')
             {
@@ -131,7 +135,7 @@ int main(int argc, char const *argv[])
 
                 case 1:
                     // Private message
-                    printf("Llegue al return");
+                    printf("Private Message Target Changing");
                     char *prueba;
                     strcpy(prueba,buffer);
                     //printf("prueba %c",prueba);
@@ -145,6 +149,9 @@ int main(int argc, char const *argv[])
                     break;
                 case 2:
                     // List users
+                    printf("List users");
+                    char *listusers;
+                    listusers = ListUsersMultiple(sock);
                     break;
                 case 3:
                     //c 1 o //c 2 o //c 3
@@ -156,22 +163,48 @@ int main(int argc, char const *argv[])
 
 
                     //strcpy(num, buffer[(strlen(buffer) - 1)]);
-                    char *prueba;
-                    strcpy(prueba,buffer);
+                    printf("Change status");
+                    //char *pruebast;
+                    //printf ("prueba change %c",buffer[3]);
+                    char pruebaparaestatus[1024];
+                    strcpy(pruebaparaestatus,buffer[3]);
+                    //pruebast = buffer[2];
+                    //strcpy(prueba,buffer);
                     //printf("prueba %c",prueba);
-                    prueba++;
-                    prueba++;
-                    prueba++;
-                    LastcharDel(prueba);
-                    len = strlen(num);
-                    for (int i = 0; i < len; i++)
-                    {
-                        dec = dec * 10 + (num[i] - '0');
-                    }
-                    printf("prueba para status %d", dec);
-                    char *a = ChangeStatus(dec, sock);
-                    printf("%s", a);
+                    //pruebast++;
+                    //pruebast++;
+                    //pruebast++;
+
+//                    LastcharDel(pruebast);
+                    //printf("lo que trae es %s",pruebast);
+
+                    //len = strlen(buffer[3]);
+
+                    //for (int i = 0; i < len; i++)
+                    //{
+                        //dec = dec * 10 + (buffer[i] - '0');
+                    //}
+                    printf("prueba para status %d", pruebaparaestatus[0]);
+                    //char *a = ChangeStatus(buffer[3], sock);
+                    //printf("%s", a);
                     break;
+                case 4:
+                    printf("Llegue al solicitar un usuario\n");
+                    printf("prueba %s",buffer);
+                    char *pruebalist="";
+                    printf("Paso la asignacion %s",pruebalist);
+                    strcpy(pruebalist,buffer);
+                    printf("prueba %c",pruebalist);
+                    //pruebalist++;
+                    //pruebalist++;
+                    //pruebalist++;
+                    //LastcharDel(pruebalist);
+                    //printf("lo que recibe como id del usuario es %s",pruebalist);
+                    //char * respuesta;
+                    //respuesta = ListUsersUnico(pruebalist,sock);
+
+                    break;
+
                 default:
                     printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive");
                     break;
@@ -231,6 +264,12 @@ int commandFunctions(char *command)
         printf("Change Status\n");
         fflush(stdout);
         return 3;
+    }
+    if ('u' == command[1])
+    {
+        printf("List One user\n");
+        fflush(stdout);
+        return 4;
     }
     return -99;
 }
@@ -317,7 +356,56 @@ int sendPrivateMessage(char *message, int successfulSocket)
     return successfulSocket;
 }
 
-char *ChangeStatus(int status, int successfulSocket)
+
+char * ListUsersUnico(char* id,int successfulSocket){
+
+/*
+
+//Estructura del Json para listar usuarios (server response) un usuario
+    printf("Estructura del json de listar usuarios (Request) un usuario\n");
+    cJSON *ListUsersRequestUnico= cJSON_CreateObject();
+    cJSON_AddStringToObject(ListUsersRequestUnico,"action","LIST_USER");
+    cJSON_AddStringToObject(ListUsersRequestUnico,"user","<id_del_usuario>");
+    out = cJSON_Print(ListUsersRequestUnico);
+    printf("%s\n\n", out);
+    cJSON_Delete(ListUsersRequestUnico);
+    free(out);
+
+*/
+
+
+
+
+
+}
+
+
+
+char * ListUsersMultiple(int successfulSocket){
+
+/*
+    //Estructura del Json para listar usuarios
+    printf("Estructura del json de listar usuarios\n");
+    cJSON *ListUsers= cJSON_CreateObject();
+    cJSON_AddStringToObject(ListUsers,"action","LIST_USER");
+    out = cJSON_Print(ListUsers);
+    printf("%s\n\n", out);
+    cJSON_Delete(ListUsers);
+    free(out);
+*/
+    char *out;
+    //Estructura del Json para listar usuarios
+    //printf("Estructura del json de listar usuarios\n");
+    cJSON *ListUsers= cJSON_CreateObject();
+    cJSON_AddStringToObject(ListUsers,"action","LIST_USER");
+    out = cJSON_Print(ListUsers);
+    successfulSocket = write(sock, out, strlen(out));
+    //printf("%s\n\n", out);
+    cJSON_Delete(ListUsers);
+    free(out);
+}
+
+char *ChangeStatus(char status[1024], int successfulSocket)
 {
     /* 
     {
@@ -338,8 +426,8 @@ char *ChangeStatus(int status, int successfulSocket)
 
 
      */
-
-    if (status == 1)
+    
+    if (strcmp(status,"1"))
     {
 
         cJSON *RequestCambioEstado = cJSON_CreateObject();
@@ -353,7 +441,7 @@ char *ChangeStatus(int status, int successfulSocket)
         free(out);
         return "Estado cambiado a active";
     }
-    if (status == 2)
+    if (strcmp(status,"2"))
     {
 
         cJSON *RequestCambioEstado = cJSON_CreateObject();
@@ -368,7 +456,7 @@ char *ChangeStatus(int status, int successfulSocket)
 
         return "Estado cambiado a busy";
     }
-    if (status == 3)
+    if (strcmp(status,"3"))
     {
 
         cJSON *RequestCambioEstado = cJSON_CreateObject();
