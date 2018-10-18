@@ -44,6 +44,7 @@ struct user availableUsers[MAX_USERS];
 
 // METHODS
 char *disconnectedUser(struct user *currUser);
+void successfullMessage(int socketMessage);
 int indexFromID(char *id);
 void recivedJSON(char *info, struct user *actualUser);
 void *createUser(void *usr);
@@ -58,7 +59,7 @@ char *changeStatusUserMessage(struct user *currUser);
 // void sendMessage(char *message, int successfulSocket, char *fromUser, int toUser);
 int broadcastMessage(char *message);
 // muestra toda la lista de
-char *listUsers();
+void listUsers();
 char *LastcharDel(char *message);
 void initializeUsers();
 char *withSemi(char *stringWithoutSemi);
@@ -188,7 +189,6 @@ int main(int argc, char const *argv[])
             printf("ID: %s\n", users[counter].userID);
             printf("FileD.: %d\n\n", users[counter].fileDescriptor);
 
-
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
 
@@ -233,24 +233,24 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
     // return resultSocket;
 }
 
-char *listUsers()
+void listUsers(int socketFromUser)
 {
     GetAvailableUsers();
     FILE *f;
-    f = fopen("file.txt", "a");
+    f = fopen("file.txt", "w");
     if (!f)
     {
         printf("Error opening file!\n");
         fflush(stdout);
         //break;
     }
-
     else
     {
 
         char *intro;
         intro = "{ \n\"action\": \"LIST_USER\",\n\t\"users\":[";
-
+        printf("list users");
+        fflush(stdout);
         //fprintf(f,"%s",intro);
         fputs(intro, f);
         fclose(f);
@@ -272,19 +272,23 @@ char *listUsers()
         }
         fputs("]\n}", f);
         fclose(f);
-
+        printf("antes de cat\n");
+        fflush(stdout);
         FILE *fp = fopen("file.txt", "r");
-        char c[1000];
-        char messageToSend[2048];
-        while (fgets(c, 1000, fp) != NULL)
+        char c[1024];
+        char messageToSend[1024];
+        while (fgets(c, 1024, fp) != NULL)
         {
-            strcat(messageToSend, c);
+            strncat(messageToSend, c, sizeof(c));
         }
 
         fclose(fp);
-        printf("\n");
+        // printf("MESSAGE TO SENT: %s\n", messageToSend);
+        
         fflush(stdout);
-        return messageToSend;
+        write(socketFromUser, messageToSend, strlen(messageToSend));
+        
+        // return messageToSend;
         //remove(fp);
     }
 }
@@ -336,7 +340,7 @@ char *respuestaDeJSON(struct user currUser)
     cJSON *usr = NULL;
 
     cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
-    cJSON_AddStringToObject(Response_del_server_del_cliente, "status", "ok");
+    cJSON_AddStringToObject(Response_del_server_del_cliente, "status", "OK");
     cJSON_AddItemToObject(Response_del_server_del_cliente, "user", usr = cJSON_CreateObject());
     cJSON_AddStringToObject(usr, "id", id);
     cJSON_AddStringToObject(usr, "name", name);
@@ -377,14 +381,16 @@ char *nuevaConnexionAviso(struct user currUser)
     GetAvailableUsers();
     int i = 0;
     int copmare;
-    for (i = 0; i < MAX_USERS; i++){
+    for (i = 0; i < MAX_USERS; i++)
+    {
         copmare = strncmp("-1", availableUsers[i].userID, 10);
         if (copmare == 0)
             break;
         copmare = strncmp(currUser.userID, availableUsers[i].userID, 10);
-        if (copmare != 0){
+        if (copmare != 0)
+        {
             write(availableUsers[i].fileDescriptor, out, strlen(out));
-        } 
+        }
     }
     cJSON_Delete(Response_del_server_del_cliente);
     free(out);
@@ -417,14 +423,16 @@ char *disconnectedUser(struct user *currUser)
     GetAvailableUsers();
     int i = 0;
     int copmare;
-    for (i = 0; i < MAX_USERS; i++){
-          copmare = strncmp("-1", availableUsers[i].userID, 10);
+    for (i = 0; i < MAX_USERS; i++)
+    {
+        copmare = strncmp("-1", availableUsers[i].userID, 10);
         if (copmare == 0)
             break;
         copmare = strncmp(currUser->userID, availableUsers[i].userID, 10);
-        if (copmare != 0){
+        if (copmare != 0)
+        {
             write(availableUsers[i].fileDescriptor, out, strlen(out));
-        } 
+        }
     }
     cJSON_Delete(Response_del_server_del_cliente);
     free(out);
@@ -454,14 +462,16 @@ char *changeStatusUserMessage(struct user *currUser)
     GetAvailableUsers();
     int i = 0;
     int copmare;
-    for (i = 0; i < MAX_USERS; i++){
-          copmare = strncmp("-1", availableUsers[i].userID, 10);
+    for (i = 0; i < MAX_USERS; i++)
+    {
+        copmare = strncmp("-1", availableUsers[i].userID, 10);
         if (copmare == 0)
             break;
         copmare = strncmp(currUser->userID, availableUsers[i].userID, 10);
-        if (copmare != 0){
+        if (copmare != 0)
+        {
             write(availableUsers[i].fileDescriptor, out, strlen(out));
-        } 
+        }
     }
     cJSON_Delete(Response_del_server_del_cliente);
     free(out);
@@ -549,7 +559,7 @@ char *JSONfromUser(struct user givenUser)
 
     out = cJSON_Print(Response_del_server_del_cliente);
     infoOfUser = out;
-    printf("%s\n\n", out);
+    printf("(557~) JSON FROM USER: %s\n\n", out);
     cJSON_Delete(Response_del_server_del_cliente);
     free(out);
     return infoOfUser;
@@ -621,7 +631,7 @@ void recivedJSON(char *info, struct user *actualUser)
         if (idDelUsuario >= 0)
         {
             fflush(stdout);
-            mensajeJSON(actualUser, users[idDelUsuario], message);
+            mensajeJSON(actualUser, availableUsers[idDelUsuario], message);
             successfullMessage(actualUser->fileDescriptor);
         }
         else
@@ -633,12 +643,35 @@ void recivedJSON(char *info, struct user *actualUser)
     if (compare == 0)
     {
         // LIST USER
-        printf("LIST USER");
-        // TODO:
-        //    * LEER cantidad en el JSON para ver si es solo 1 usuario o muchos
-        char *getListUsers = listUsers();
-        write(actualUser->fileDescriptor, getListUsers, strlen(getListUsers));
-        // printf("List sures : %s", getListUsers);
+        printf("LIST USER\n");
+        int tammao = cJSON_GetArraySize(json);
+        printf("Tamano: %d\n", tammao);
+        if (tammao == 1)
+        {
+            listUsers(actualUser->fileDescriptor);
+            // printf("RESULT: %s", getListUsers);
+            fflush(stdout);
+            // successfullMessage(actualUser->fileDescriptor);
+            // write(actualUser->fileDescriptor, getListUsers, strlen(getListUsers));
+        }
+        else
+        {
+            cJSON *getID = cJSON_GetObjectItem(json, "user");
+            char *usersID = cJSON_Print(getID);
+            int indexUsuario = indexFromID(usersID);
+            if (indexUsuario >= 0)
+            {
+                fflush(stdout);
+                char *jsonInfoUser = JSONfromUser(availableUsers[indexUsuario]); 
+                write(actualUser->fileDescriptor,jsonInfoUser, strlen(jsonInfoUser) );
+                // mensajeJSON(actualUser, users[idDelUsuario], message);
+                successfullMessage(actualUser->fileDescriptor);
+            }
+            else
+            {
+                errorResponder("No existe usuario", actualUser->fileDescriptor);
+            }
+        }
     }
     compare = strncmp(CHANGE, action, sizeof(CHANGE));
     if (compare == 0)
@@ -662,7 +695,7 @@ void firstJSONRecieve(char *informacionInutil, struct user newUser)
     // FIXME:
     //  * usuario tiene que mandar el JSON con ORIGIN, HOST y USERNAME
     //  * Descomentar el chunck!
-/* 
+    /* 
     cJSON *json = cJSON_Parse(informacionInutil);
     cJSON *getIpDelUsuario = cJSON_GetObjectItem(json, "origin");
     char *ipDelUsuario = cJSON_Print(getIpDelUsuario);
@@ -681,13 +714,13 @@ void firstJSONRecieve(char *informacionInutil, struct user newUser)
     respuestaDeJSON(newUser); // Responder a usuario
     // mandar mensaje a todos de conexion
     nuevaConnexionAviso(newUser);
-
 }
-void successfullMessage(int socketMessage){
+void successfullMessage(int socketMessage)
+{
     char *out;
     cJSON *usr = NULL;
     cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
-    cJSON_AddStringToObject(Response_del_server_del_cliente, "status", "OK"); 
+    cJSON_AddStringToObject(Response_del_server_del_cliente, "status", "OK");
     out = cJSON_Print(Response_del_server_del_cliente);
     write(socketMessage, out, strlen(out));
     cJSON_Delete(Response_del_server_del_cliente);

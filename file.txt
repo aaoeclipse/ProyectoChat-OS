@@ -1,30 +1,8 @@
 { 
 "action": "LIST_USER",
-	"users":[{"id": 951OK,	
-"name": as,	
-"status": active},]
-}{ 
-"action": "LIST_USER",
-	"users":[{"id": 951OK,	
-"name": as,	
-"status": active},{"id": BJ541,	
-"name": df,	
-"status": active},]
-}{ 
-"action": "LIST_USER",
-	"users":[{"id": 00OKA,	
-"name": jorge,	
-"status": active},{"id": MOK22,	
-"name": jorge,	
-"status": active},{"id": 2JHGC,	
-"name": jorge,	
-"status": active},{"id": 6KK6A,	
-"name": jorge,	
-"status": active},{"id": A3IM5,	
-"name": jorge,	
-"status": active},{"id": B5I95,	
-"name": jorge,	
-"status": active},{"id": 95O7G,	
-"name": jorge,	
+	"users":[{"id": PG0N1,	
+"name": test,	
+"status": active},{"id": 5LC05,	
+"name": hola,	
 "status": active},]
 }
