@@ -28,11 +28,12 @@ void conn();
 char *LastcharDel(char *name);
 void *listening(void *sock);
 char *ChangeStatus(int status, int successfulSocket);
+char *noQuotes(char* withQuotes);
 
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
 char idParaMandar[25];
-char *withoutQuotes;
+char withoutQuotes[25];
 struct sockaddr_in serv_addr;
 bool connected;
 char username[256];
@@ -130,6 +131,7 @@ int main(int argc, char const *argv[])
 
                 case 1:
                     // Private message
+                    
                     break;
                 case 2:
                     // List users
@@ -389,12 +391,15 @@ void conn(int successfulSocket)
         char *nameusuario = cJSON_Print(pruebanamereal);
         char *statususuario = cJSON_Print(pruebastatusreal);
         printf("%s\n%s\n%s\n",idusuario,nameusuario,statususuario);
+        strcpy(idusuario, noQuotes(idusuario));
+        strcpy(nameusuario, noQuotes(nameusuario));
+        strcpy(statususuario, noQuotes(statususuario));
+
         strcpy(usuario.userID, idusuario);
         strcpy(usuario.name, nameusuario);
         strcpy(usuario.status, statususuario);
 
         strcpy(idParaMandar, usuario.userID);
-
         fflush(stdout);
     }
 }
@@ -438,13 +443,11 @@ void *listening(void *sock)
 }
 
 char *noQuotes(char* withQuotes){
-    // char str[25]="hello";
 	int i,len=strlen(withQuotes);
 	for(i=1;i<len-1;i++)
 	{
 		withQuotes[i-1]=withQuotes[i];
 	}
 	withQuotes[i-1]='\0';
-	printf(withQuotes);
-    return withoutQuotes;
+    return withQuotes;
 }
