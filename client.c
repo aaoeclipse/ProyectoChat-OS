@@ -153,7 +153,16 @@ int main(int argc, char const *argv[])
                     //char *num;
                     //int len;
                     //int dec;
-                    strcpy(num, buffer[(strlen(buffer) - 1)]);
+
+
+                    //strcpy(num, buffer[(strlen(buffer) - 1)]);
+                    char *prueba;
+                    strcpy(prueba,buffer);
+                    //printf("prueba %c",prueba);
+                    prueba++;
+                    prueba++;
+                    prueba++;
+                    LastcharDel(prueba);
                     len = strlen(num);
                     for (int i = 0; i < len; i++)
                     {
