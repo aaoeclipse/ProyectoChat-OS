@@ -59,7 +59,7 @@ char *changeStatusUserMessage(struct user *currUser);
 // void sendMessage(char *message, int successfulSocket, char *fromUser, int toUser);
 int broadcastMessage(char *message);
 // muestra toda la lista de
-void listUsers();
+void listUsers(int socketFromUser);
 char *LastcharDel(char *message);
 void initializeUsers();
 char *withSemi(char *stringWithoutSemi);
