@@ -65,7 +65,7 @@ char *withSemi(char *stringWithoutSemi);
 void GetAvailableUsers();
 char *respuestaDeJSON(struct user createUser);
 void mensajeJSON(struct user *userSender, struct user userResiver, char *message);
-void firstJSONRecieve(char *informacionInutil, struct user newUser, int new_socket);
+void firstJSONRecieve(char *informacionInutil, struct user newUser);
 char *createUserJson(char *id, char *name, char *status);
 char *randomStringFunction();
 // creates user with his pthread
@@ -167,13 +167,28 @@ int main(int argc, char const *argv[])
         valread = read(new_socket, buffer, sizeof(buffer));
         if (valread >= 0)
         {
-
+            char *randomString = randomStringFunction();
+            /* 
+                cJSON *json = cJSON_Parse(informacionInutil);
+                cJSON *getIpDelUsuario = cJSON_GetObjectItem(json, "origin");
+                char *ipDelUsuario = cJSON_Print(getIpDelUsuario);
+                cJSON *getUser = cJSON_GetObjectItem(json, "user");
+                char *username = cJSON_Print(getUser);
+            */
             // Parse JSON and create USER
-            firstJSONRecieve(buffer, users[counter], new_socket);
+            strcpy(users[counter].userID, randomString);
+            strcpy(users[counter].name, buffer);
+            strcpy(users[counter].status, "active");
+            // strcpy(newUser.address, ipDelUsuario);
+            users[counter].fileDescriptor = new_socket;
+
+            firstJSONRecieve(buffer, users[counter]);
 
             printf("Usuario: %s\n", users[counter].name);
             printf("ID: %s\n", users[counter].userID);
             printf("FileD.: %d\n\n", users[counter].fileDescriptor);
+
+
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
 
@@ -576,6 +591,7 @@ void mensajeJSON(struct user *userSender, struct user userResiver, char *message
 
 void recivedJSON(char *info, struct user *actualUser)
 {
+    // printf("info: %s\n", info);
     char *reciver;
     int compare;
     char *SEND = "SEND_MESSAGE";
@@ -641,24 +657,26 @@ void recivedJSON(char *info, struct user *actualUser)
     }
 }
 
-void firstJSONRecieve(char *informacionInutil, struct user newUser, int new_socket)
+void firstJSONRecieve(char *informacionInutil, struct user newUser)
 {
     // FIXME:
     //  * usuario tiene que mandar el JSON con ORIGIN, HOST y USERNAME
-
+    //  * Descomentar el chunck!
+/* 
     cJSON *json = cJSON_Parse(informacionInutil);
     cJSON *getIpDelUsuario = cJSON_GetObjectItem(json, "origin");
     char *ipDelUsuario = cJSON_Print(getIpDelUsuario);
     cJSON *getUser = cJSON_GetObjectItem(json, "user");
     char *username = cJSON_Print(getUser);
-
-    // USER INFO
-    char *randomString = randomStringFunction();
+ */
+    // USER INFO FIXME: dsecomment y quitar el informacion Inutil
+    /* char *randomString = randomStringFunction();
     strcpy(newUser.userID, randomString);
-    strcpy(newUser.name, username);
+    // strcpy(newUser.name, username);
+    // strcpy(newUser.name, informacionInutil);
     strcpy(newUser.status, "active");
-    strcpy(newUser.address, ipDelUsuario);
-    newUser.fileDescriptor = new_socket;
+    // strcpy(newUser.address, ipDelUsuario);
+    newUser.fileDescriptor = new_socket; */
 
     respuestaDeJSON(newUser); // Responder a usuario
     // mandar mensaje a todos de conexion
