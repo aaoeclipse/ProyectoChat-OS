@@ -89,20 +89,8 @@ void *createUser(void *usr)
                 fflush(stdout);
                 break;
             }
-            // TODO:
-            //    1. String bufferUser -> JSON
-            //    2. JSON -> que es? LIST_USER, BYE
-            //       2.1 HACER ESAS 5 FUNCIONES
-
-            /* // Sending Confirmation
-            sendMessage(bufferUser, userInfo->fileDescriptor, userInfo->name, 1); */
             recivedJSON(bufferUser, userInfo);
 
-            // TODO: PARSEAR
-            // mensajeJSON( userInfo, users[0], bufferUser)
-
-            // write(userInfo->fileDescriptor, accepted, strlen(accepted));
-            sleep(0.1);
         }
         else
         {
@@ -167,7 +155,6 @@ int main(int argc, char const *argv[])
         }
         // COMUNICATION NEW USER
         memset(buffer, 0, sizeof(buffer));
-
         // reads recived message
         valread = read(new_socket, buffer, sizeof(buffer));
         if (valread >= 0)
@@ -178,15 +165,14 @@ int main(int argc, char const *argv[])
             strcpy(users[counter].name, buffer);
             strcpy(users[counter].status, "active");
             users[counter].fileDescriptor = new_socket;
-
+            printf("Usuario: %s\n", users[counter].name);
+            printf("ID: %s\n\n", users[counter].userID);
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
-
             if (rc < 0)
                 printf("ERROR in pthread");
-            bzero(buffer, sizeof(buffer));
-            // JSONfromUser(users[counter]);
             respuestaDeJSON(users[counter]);
+            // listUsers();
             counter = counter + 1;
         }
         else
@@ -206,9 +192,6 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
 	"to": "<idusuario>",
 	"message": "message"
      */
-    // TODO:
-    //      1. Mandar el mensaje a esa persona
-    //      2. No se sabe como el usuario va a estar escuchando
 
     message = LastcharDel(message);
     // scanf("test: %s", users[0].name);
@@ -231,33 +214,39 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
 
 char *listUsers()
 {
-    FILE *f = fopen("file.txt", "a");
-    if (f == NULL)
+    GetAvailableUsers();
+    
+    FILE* f;
+    f = fopen("file.txt", "a");
+    if (!f)
     {
         printf("Error opening file!\n");
+        fflush(stdout);
         //break;
     }
     else
     {
-        const char *intro[200];
-        *intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\": [";
-        fputs(f, *intro);
-
+        char *intro;
+        intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\":[";
+        fprintf(f,"%s",intro);
+        fclose(f);
+       
         for (int i = 0; i < MAX_USERS; i++)
         {
-            if (availableUsers[i].userID < 0)
+            
+            printf("userID: %s\n",  availableUsers[i].userID);
+            fflush(stdout);
+
+            if (strcmp ("-1", availableUsers[i].userID) == 0)
             {
                 break;
             }
+            printf("no es -1");
+
             /*Sirve para imprimir y guardar en el file*/
-            fputs(f, createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status));
+            fputs(createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status),f);
             fputs(f, ",");
         }
-        /* TODO:
-        1. sacar todos los users
-        2. de users -> JSON
-        3. Mandar a la persona que pidio
-    */
 
         FILE *fp = fopen("file.txt", "r");
         char *c = fgetc(fp);
@@ -414,6 +403,11 @@ void errorResponder(char *message, int socket)
 void mensajeJSON(struct user *userSender, struct user userResiver, char *message)
 {
     char *out;
+    printf("Mensaje: %s", message);
+    fflush(stdout);
+    printf("Reciver: %s", userResiver.name);
+    fflush(stdout);
+    
     cJSON *Mensaje = cJSON_CreateObject();
     cJSON_AddStringToObject(Mensaje, "action", "RECEIVE_MESSAGE");
     cJSON_AddStringToObject(Mensaje, "from", userSender->userID);
@@ -436,6 +430,8 @@ void recivedJSON(char *info, struct user *actualUser)
     cJSON *json = cJSON_Parse(info);
     cJSON *getAction = cJSON_GetObjectItem(json, "action");
     char *action = cJSON_Print(getAction);
+    printf("Mensaje: %s", info);
+    fflush(stdout);
     compare = strncmp(SEND, action, sizeof(SEND));
     if (compare == 0)
     {

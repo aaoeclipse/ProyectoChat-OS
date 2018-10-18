@@ -32,6 +32,7 @@ char *ChangeStatus(int status, int successfulSocket);
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
 char idParaMandar[25];
+char *withoutQuotes;
 struct sockaddr_in serv_addr;
 bool connected;
 char username[256];
@@ -140,7 +141,7 @@ int main(int argc, char const *argv[])
                     //char *num;
                     //int len;
                     //int dec;
-                    strcpy(num , buffer[(strlen(buffer) - 1)]);
+                    strcpy(num, buffer[(strlen(buffer) - 1)]);
                     len = strlen(num);
                     for (int i = 0; i < len; i++)
                     {
@@ -186,32 +187,29 @@ int commandFunctions(char *command)
     lengthOfString = (unsigned)strlen(command);
     // printf("lenghtofstring = %u", lengthOfString );
     // CHECK IF ITS Q
-    if (lengthOfString == 3)
+    if ('q' == command[1])
     {
-        if ('q' == command[1])
-        {
-            printf("Exiting Program...\n");
-            fflush(stdout);
-            return 0;
-        }
-        if ('m' == command[1])
-        {
-            printf("Changing User Target\n");
-            fflush(stdout);
-            return 1;
-        }
-        if ('l' == command[1])
-        {
-            printf("List users\n");
-            fflush(stdout);
-            return 2;
-        }
-        if ('c' == command[1])
-        {
-            printf("Change Status\n");
-            fflush(stdout);
-            return 3;
-        }
+        printf("Exiting Program...\n");
+        fflush(stdout);
+        return 0;
+    }
+    if ('m' == command[1])
+    {
+        printf("Changing User Target\n");
+        fflush(stdout);
+        return 1;
+    }
+    if ('l' == command[1])
+    {
+        printf("List users\n");
+        fflush(stdout);
+        return 2;
+    }
+    if ('c' == command[1])
+    {
+        printf("Change Status\n");
+        fflush(stdout);
+        return 3;
     }
     return -99;
 }
@@ -223,6 +221,7 @@ int sendMessage(char *message, int successfulSocket)
 	"to": "<idusuario>",
 	"message": "message"
      */
+    // printf("message: %s\n", message);
     successfulSocket = write(sock, message, strlen(message));
 
     if (successfulSocket < 0)
@@ -258,17 +257,23 @@ int sendPrivateMessage(char *message, int successfulSocket)
     //Estructura de JSON de mensaje
     //printf("Estructura del json de mensaje\n");
     char *paramensaje;
-    cJSON *Mensaje= cJSON_CreateObject();
-    cJSON_AddStringToObject(Mensaje,"action","SEND_MESSAGE");
-    cJSON_AddStringToObject(Mensaje,"from",idParaMandar);
-    cJSON_AddStringToObject(Mensaje,"to",usuario.userID);
-    cJSON_AddStringToObject(Mensaje,"message",message);
+    cJSON *Mensaje = cJSON_CreateObject();
+    message = LastcharDel(message);
+    cJSON_AddStringToObject(Mensaje, "action", "SEND_MESSAGE");
+    cJSON_AddStringToObject(Mensaje, "from", idParaMandar);
+    cJSON_AddStringToObject(Mensaje, "to", usuario.userID);
+    cJSON_AddStringToObject(Mensaje, "message", message);
     paramensaje = cJSON_Print(Mensaje);
     //printf("%s\n\n", paramensaje);
     cJSON_Delete(Mensaje);
-    free(paramensaje);
+    printf("id para mandar: %s\n",idParaMandar);
+    printf("UserID: %s\n",usuario.userID);
+    printf("mensaje: %s\n",message);
 
+
+    printf("MENSAJE: %s\n", paramensaje);
     successfulSocket = write(sock, paramensaje, strlen(paramensaje));
+    free(paramensaje);
 
     if (successfulSocket < 0)
     {
@@ -277,7 +282,6 @@ int sendPrivateMessage(char *message, int successfulSocket)
     }
     return successfulSocket;
 }
-
 
 char *ChangeStatus(int status, int successfulSocket)
 {
@@ -366,7 +370,7 @@ void conn(int successfulSocket)
         connected = true;
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
-        // printf("%s\n", recvBuffer);
+        printf("%s\n", recvBuffer);
         // printf("buffer size: %ld\n", sizeof(recvBuffer));
         // fflush(stdout);
 
@@ -383,16 +387,15 @@ void conn(int successfulSocket)
         cJSON *pruebastatusreal = cJSON_GetObjectItem(pruebaid, "status");
         char *idusuario = cJSON_Print(pruebaidreal);
         char *nameusuario = cJSON_Print(pruebanamereal);
-        char *statususuario = cJSON_Print(pruebaidreal);
+        char *statususuario = cJSON_Print(pruebastatusreal);
+        printf("%s\n%s\n%s\n",idusuario,nameusuario,statususuario);
         strcpy(usuario.userID, idusuario);
         strcpy(usuario.name, nameusuario);
         strcpy(usuario.status, statususuario);
 
         strcpy(idParaMandar, usuario.userID);
-        
+
         fflush(stdout);
-
-
     }
 }
 
@@ -415,31 +418,33 @@ void *listening(void *sock)
     {
         // COMUNICATION USER
         memset(bufferUser, 0, sizeof(bufferUser));
-        // bzero(bufferUser, sizeof(bufferUser));
         // reads recived message
         valread = read(newSock, bufferUser, sizeof(bufferUser));
-
         if (valread > 0)
         {
-            // TODO:
-            //  * parsear de texto a JSON
-            //  * sacar quien lo mando o si es broadcast
-            //  * sacar quien lo mando
-
-            printf("\nUser: %s\n%s: ", bufferUser, username);
-
+            printf("mensaje: %s", bufferUser);
             memset(bufferUser, 0, sizeof(bufferUser));
-            // bzero(bufferUser, sizeof(bufferUser));
             fflush(stdout);
         }
         else
         {
             printf("ERROR Server Disconnected withouth HandShake\n");
             memset(bufferUser, 0, sizeof(bufferUser));
-            // bzero(bufferUser, sizeof(bufferUser));
             wantToExit = true;
             break;
         }
     }
     pthread_exit(NULL);
+}
+
+char *noQuotes(char* withQuotes){
+    // char str[25]="hello";
+	int i,len=strlen(withQuotes);
+	for(i=1;i<len-1;i++)
+	{
+		withQuotes[i-1]=withQuotes[i];
+	}
+	withQuotes[i-1]='\0';
+	printf(withQuotes);
+    return withoutQuotes;
 }
