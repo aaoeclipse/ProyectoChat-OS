@@ -169,11 +169,13 @@ int main(int argc, char const *argv[])
             printf("ID: %s\n\n", users[counter].userID);
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
+            
             if (rc < 0)
                 printf("ERROR in pthread");
             respuestaDeJSON(users[counter]);
-            // listUsers();
+            
             counter = counter + 1;
+            listUsers();
         }
         else
         {
@@ -215,8 +217,7 @@ void sendMessage(char message[1024], int userSocket, char *fromUser, int toUser)
 char *listUsers()
 {
     GetAvailableUsers();
-    
-    FILE* f;
+    FILE * f;
     f = fopen("file.txt", "a");
     if (!f)
     {
@@ -224,20 +225,25 @@ char *listUsers()
         fflush(stdout);
         //break;
     }
+    
     else
     {
+        
         char *intro;
-        intro = "{\n\"action\": \"LIST_USER\",\n\t\"users\":[";
-        fprintf(f,"%s",intro);
+        intro = "{ \n\"action\": \"LIST_USER\",\n\t\"users\":[";
+
+        //fprintf(f,"%s",intro);
+        fputs(intro,f);
         fclose(f);
-       
+        f = fopen("file.txt", "a");
         for (int i = 0; i < MAX_USERS; i++)
         {
             
             printf("userID: %s\n",  availableUsers[i].userID);
+            printf("despues de guardar");
             fflush(stdout);
 
-            if (strcmp ("-1", availableUsers[i].userID) == 0)
+            if ((strcmp ("-1", availableUsers[i].userID)) == 0)
             {
                 break;
             }
@@ -246,7 +252,10 @@ char *listUsers()
             /*Sirve para imprimir y guardar en el file*/
             fputs(createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status),f);
             fputs(f, ",");
+            
         }
+        fputs("]\n}",f);
+        fclose(f);
 
         FILE *fp = fopen("file.txt", "r");
         char *c = fgetc(fp);
