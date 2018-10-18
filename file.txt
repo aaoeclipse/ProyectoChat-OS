@@ -1,8 +1,7 @@
 { 
 "action": "LIST_USER",
-	"users":[{"id": PG0N1,	
-"name": test,	
-"status": active},{"id": 5LC05,	
-"name": hola,	
-"status": active},]
+	"users":[{"id": "PODKJ",	
+"name": ""feo"",	
+"status": "active"},
+]
 }

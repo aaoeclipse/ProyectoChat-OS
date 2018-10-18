@@ -37,6 +37,8 @@ char * ListUsersMultiple(int successfulSocket);
 char * ListUsersUnico(char* id,int successfulSocket);
 
 // GLOBAL VARIABLES
+char *HOST;
+char *ORIGIN;
 int ID, lengthOfString, sock = 0, valread;
 char idParaMandar[25];
 char *withoutQuotes;
@@ -83,6 +85,7 @@ int main(int argc, char const *argv[])
     }
     // gets IP address of HOST
     ipAddress = (char *)argv[1];
+    HOST = ipAddress;
 
     // Bienvenida
     welcomeMessage();
@@ -102,7 +105,6 @@ int main(int argc, char const *argv[])
         printf("\nInvalid address/ Address not supported\n");
         return -1;
     }
-
     // CONNECTION
     conn(sock);
     rc = pthread_create(&thread, NULL, listening, (void *)&sock);
@@ -271,8 +273,7 @@ int commandFunctions(char *command)
     }
     return -99;
 }
-char *HOST;
-char *ORIGIN;
+
 /*
 -----------Metodos para buscar el ip y el host----------
 */
@@ -334,14 +335,17 @@ int sendMessage(char *username, int successfulSocket)
 						host_entry->h_addr_list[0])); 
     ORIGIN = IPbuffer;
 	//printf("Hostname: %s\n", hostbuffer); 
-	printf("Host IP: %s", IPbuffer);
-
-    cJSON *usr = NULL;
-    cJSON *Response_del_server_del_cliente = cJSON_CreateObject();
+	//printf("Host IP: %s", IPbuffer);
+    // HOST = "1.1.1.1";
+    char *out;
+    //cJSON *usr = NULL;
+    cJSON *usr = cJSON_CreateObject();
     cJSON_AddStringToObject(usr, "host", HOST);
     cJSON_AddStringToObject(usr, "origin", ORIGIN);
     cJSON_AddStringToObject(usr, "user", username);
-    out = cJSON_Print(Response_del_server_del_cliente);
+    out = cJSON_Print(usr);
+    printf(out);
+    fflush(stdout);
     successfulSocket = write(sock, out, strlen(out));
     cJSON_Delete(usr);
     free(out);
@@ -553,6 +557,7 @@ void conn(int successfulSocket)
         connected = true;
         sendMessage(username, successfulSocket);
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
+
         printf("%s\n", recvBuffer);
         // printf("buffer size: %ld\n", sizeof(recvBuffer));
         // fflush(stdout);
