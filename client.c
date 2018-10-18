@@ -191,17 +191,12 @@ int main(int argc, char const *argv[])
                 case 4:
                     printf("Llegue al solicitar un usuario\n");
                     printf("prueba %s",buffer);
-                    char *pruebalist="";
-                    printf("Paso la asignacion %s",pruebalist);
-                    strcpy(pruebalist,buffer);
-                    printf("prueba %c",pruebalist);
-                    //pruebalist++;
-                    //pruebalist++;
-                    //pruebalist++;
-                    //LastcharDel(pruebalist);
-                    //printf("lo que recibe como id del usuario es %s",pruebalist);
-                    //char * respuesta;
-                    //respuesta = ListUsersUnico(pruebalist,sock);
+                    char pruebalist[1024];
+                    // printf("Paso la asignacion %s",pruebalist);
+                    // strcpy(pruebalist,buffer);
+                    strncpy(pruebalist, buffer + 3, sizeof(buffer) - 3);
+                    printf("prueba %s",pruebalist);
+                    fflush(stdout);
 
                     break;
 
@@ -514,7 +509,7 @@ void conn(int successfulSocket)
         strcpy(usuario.userID, idusuario);
         strcpy(usuario.name, nameusuario);
         strcpy(usuario.status, statususuario);
-        noQuotes(usuario.userID);
+        // noQuotes(usuario.userID);
         printf("ESTE ES EL ID MIO: %s",usuario.userID);
         strcpy(idParaMandar, usuario.userID);
 
