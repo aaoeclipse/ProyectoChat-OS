@@ -180,7 +180,8 @@ int main(int argc, char const *argv[])
             respuestaDeJSON(users[counter]);
             
             counter = counter + 1;
-            // listUsers();
+            listUsers();
+            
         }
         else
         {
@@ -240,32 +241,39 @@ char *listUsers()
         //fprintf(f,"%s",intro);
         fputs(intro,f);
         fclose(f);
-        f = fopen("file.txt", "a");
+        //f = fopen("file.txt", "a");
         for (int i = 0; i < MAX_USERS; i++)
         {
-            
-            printf("userID: %s\n",  availableUsers[i].userID);
-            printf("despues de guardar");
-            fflush(stdout);
-
-            if ((strcmp ("-1", availableUsers[i].userID)) == 0)
+            f = fopen("file.txt", "a");
+            int equals = strncmp ("-1", availableUsers[i].userID,10);
+            if (equals == 0)
             {
                 break;
             }
-            printf("no es -1");
-
+            fflush(stdout);
             /*Sirve para imprimir y guardar en el file*/
-            fputs(createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status), f);
-            fputs(f, ",");
-            
+
+            createUserJson(availableUsers[i].userID, availableUsers[i].name, availableUsers[i].status);
+            fputs(",",f);
+            fclose(f);
         }
         fputs("]\n}",f);
         fclose(f);
 
         FILE *fp = fopen("file.txt", "r");
-        char *c = fgetc(fp);
-        printf("%s", c);
+        char c[1000];
+        char messageToSend[2048];
+        while (fgets(c, 1000, fp) != NULL){
+            strcat(messageToSend, c);
+
+        }
+        
         fclose(fp);
+        printf("\n");
+        fflush(stdout);
+        return messageToSend;
+        //remove(fp);
+
     }
 }
 
@@ -273,16 +281,24 @@ char *createUserJson(char *id, char *name, char *status)
 {
     //char userText [1000];
     char *idtext = "{\"id\": ";
-    char *nametext = "\n\"name\": ";
-    char *statustext = "\n\"status\": ";
+    char *nametext = "\t\n\"name\": ";
+    char *statustext = "\t\n\"status\": ";
     char *endtext = "}";
-    strcat(idtext, id);
-    strcat(nametext, name);
-    strcat(statustext, status);
-    strcat(idtext, nametext);
-    strcat(idtext, statustext);
-    strcat(idtext, endtext);
-    return idtext;
+    char *coma = ",";
+    char text[1000];
+    strcpy(text,idtext);
+    strcat(text, id);
+    strcat(text,coma);
+    strcat(text,nametext); strcat(text,name);
+    strcat(text,coma);
+    strcat(text,statustext); strcat(text,status);
+    strcat(text, endtext);
+    fflush(stdout);
+    FILE * f;
+    f = fopen("file.txt", "a");
+    fputs(text,f);
+    fclose(f);
+    return text;
 }
 char *respuestaDeJSON(struct user currUser)
 {

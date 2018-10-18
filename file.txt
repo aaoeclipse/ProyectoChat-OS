@@ -1,0 +1,13 @@
+{ 
+"action": "LIST_USER",
+	"users":[{"id": 951OK,	
+"name": as,	
+"status": active},]
+}{ 
+"action": "LIST_USER",
+	"users":[{"id": 951OK,	
+"name": as,	
+"status": active},{"id": BJ541,	
+"name": df,	
+"status": active},]
+}
