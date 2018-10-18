@@ -28,12 +28,12 @@ void conn();
 char *LastcharDel(char *name);
 void *listening(void *sock);
 char *ChangeStatus(int status, int successfulSocket);
+int sendPrivateMessage(char *message, int successfulSocket);
 char *noQuotes(char* withQuotes);
-
 // GLOBAL VARIABLES
 int ID, lengthOfString, sock = 0, valread;
 char idParaMandar[25];
-char withoutQuotes[25];
+char *withoutQuotes;
 struct sockaddr_in serv_addr;
 bool connected;
 char username[256];
@@ -131,6 +131,16 @@ int main(int argc, char const *argv[])
 
                 case 1:
                     // Private message
+                    printf("Llegue al return");
+                    char *prueba;
+                    strcpy(prueba,buffer);
+                    //printf("prueba %c",prueba);
+                    prueba++;
+                    prueba++;
+                    prueba++;
+                    LastcharDel(prueba);
+                    printf("Se va a mandar al id ...%s...\n",prueba);
+                    strcpy(idParaMandar,prueba);
                     
                     break;
                 case 2:
@@ -260,10 +270,23 @@ int sendPrivateMessage(char *message, int successfulSocket)
     //printf("Estructura del json de mensaje\n");
     char *paramensaje;
     cJSON *Mensaje = cJSON_CreateObject();
-    message = LastcharDel(message);
+    LastcharDel(message);
+    //LastcharDel(usuario.userID);/////////////////
+    //idParaMandar = LastcharDel(idParaMandar);
+    ////////////////////////strcpy (idParaMandar, LastcharDel( idParaMandar));
+    //noQuotes( usuario.userID);
+//prueba
+
+	//usuario.userID[i-1]='\0';
+//prueba
+        printf("id from: %s...\n",usuario.userID);
+    //strcpy (usuario.userID, noQuotes( usuario.userID));
+    //strcpy (usuario.userID, noQuotes( usuario.userID));
+    //strcpy (idParaMandar, LastcharDel( idParaMandar));
+    //strcpy (idParaMandar, LastcharDel( idParaMandar));
     cJSON_AddStringToObject(Mensaje, "action", "SEND_MESSAGE");
-    cJSON_AddStringToObject(Mensaje, "from", idParaMandar);
-    cJSON_AddStringToObject(Mensaje, "to", usuario.userID);
+    cJSON_AddStringToObject(Mensaje, "from", usuario.userID);
+    cJSON_AddStringToObject(Mensaje, "to", idParaMandar);
     cJSON_AddStringToObject(Mensaje, "message", message);
     paramensaje = cJSON_Print(Mensaje);
     //printf("%s\n\n", paramensaje);
@@ -391,15 +414,12 @@ void conn(int successfulSocket)
         char *nameusuario = cJSON_Print(pruebanamereal);
         char *statususuario = cJSON_Print(pruebastatusreal);
         printf("%s\n%s\n%s\n",idusuario,nameusuario,statususuario);
-        strcpy(idusuario, noQuotes(idusuario));
-        strcpy(nameusuario, noQuotes(nameusuario));
-        strcpy(statususuario, noQuotes(statususuario));
-
         strcpy(usuario.userID, idusuario);
         strcpy(usuario.name, nameusuario);
         strcpy(usuario.status, statususuario);
 
         strcpy(idParaMandar, usuario.userID);
+
         fflush(stdout);
     }
 }
@@ -443,11 +463,13 @@ void *listening(void *sock)
 }
 
 char *noQuotes(char* withQuotes){
+    // char str[25]="hello";
 	int i,len=strlen(withQuotes);
 	for(i=1;i<len-1;i++)
 	{
 		withQuotes[i-1]=withQuotes[i];
 	}
 	withQuotes[i-1]='\0';
-    return withQuotes;
+	printf(withQuotes);
+    return withoutQuotes;
 }

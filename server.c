@@ -168,8 +168,10 @@ int main(int argc, char const *argv[])
             strcpy(users[counter].name, buffer);
             strcpy(users[counter].status, "active");
             users[counter].fileDescriptor = new_socket;
+
             printf("Usuario: %s\n", users[counter].name);
-            printf("ID: %s\n\n", users[counter].userID);
+            printf("ID: %s\n", users[counter].userID);
+            printf("FileD.: %d\n\n", users[counter].fileDescriptor);
             // create user with socket
             rc = pthread_create(&threads[counter], NULL, createUser, (void *)&users[counter]);
             
@@ -467,13 +469,13 @@ void recivedJSON(char *info, struct user *actualUser)
         if (idDelUsuario >= 0)
         {
             printf("mandando mensaje a %s\n", users[idDelUsuario].name);
-            printf("mandando mensaje por socket %s\n", users[idDelUsuario].fileDescriptor);
-            
+            printf("mandando mensaje por socket %d\n", users[idDelUsuario].fileDescriptor);
+            fflush(stdout);
             mensajeJSON(actualUser, users[idDelUsuario], message);
         }
         else
         {
-            errorResponder("No hay usuario con ese id", actualUser->fileDescriptor);
+            errorResponder("No existe usuario", actualUser->fileDescriptor);
         }
     }
     compare = strncmp(LIST, action, sizeof(LIST));
