@@ -417,7 +417,8 @@ void conn(int successfulSocket)
         strcpy(usuario.userID, idusuario);
         strcpy(usuario.name, nameusuario);
         strcpy(usuario.status, statususuario);
-
+        noQuotes(usuario.userID);
+        printf("ESTE ES EL ID MIO: %s",usuario.userID);
         strcpy(idParaMandar, usuario.userID);
 
         fflush(stdout);
