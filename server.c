@@ -286,6 +286,7 @@ void listUsers(int socketFromUser)
         // printf("MESSAGE TO SENT: %s\n", messageToSend);
 
         fflush(stdout);
+        printf("%s", messageToSend);
         write(socketFromUser, messageToSend, strlen(messageToSend));
 
         // return messageToSend;
@@ -297,8 +298,8 @@ char *createUserJson(char *id, char *name, char *status)
 {
     //char userText [1000];
     char *idtext = "{\"id\": \"";
-    char *nametext = "\t\n\"name\": \"";
-    char *statustext = "\t\n\"status\": \"";
+    char *nametext = "\n\t\"name\": \"";
+    char *statustext = "\n\t\"status\": \"";
     char *endtext = "}";
     char *coma = ",";
     char *comilla = "\"";
@@ -616,8 +617,6 @@ void recivedJSON(char *info, struct user *actualUser)
     cJSON *getAction = cJSON_GetObjectItem(json, "action");
     char *action = cJSON_Print(getAction);
     strcpy(action, noQuotes(action));
-    printf("action: %s", action);
-    fflush(stdout);
     compare = strncmp(SEND, action, sizeof(SEND));
     if (compare == 0)
     {
@@ -625,11 +624,15 @@ void recivedJSON(char *info, struct user *actualUser)
         // SEND MESSAGE
         cJSON *getID = cJSON_GetObjectItem(json, "to");
         char *id = cJSON_Print(getID);
+
         strcpy(id, noQuotes(id));
+        
         cJSON *getMessage = cJSON_GetObjectItem(json, "message");
         char *message = cJSON_Print(getMessage);
         // QUITAR LAS COMILLAS
         strcpy(message, noQuotes(message));
+        printf("%s -> %s\n",id,actualUser->userID);
+        fflush(stdout);
         // printf("id para mandar: %s\n", id);
         int idDelUsuario = indexFromID(id);
         // printf("index: %d\n", idDelUsuario);
