@@ -11,8 +11,8 @@
 #include <ifaddrs.h>
 #include <pthread.h>
 #include "cJSON.c"
-#include <errno.h> 
-#include <netdb.h> 
+#include <errno.h>
+#include <netdb.h>
 #include <sys/types.h>
 
 #define PORT 8080
@@ -32,9 +32,9 @@ char *LastcharDel(char *name);
 void *listening(void *sock);
 char *ChangeStatus(char status[1024], int successfulSocket);
 int sendPrivateMessage(char *message, int successfulSocket);
-char *noQuotes(char* withQuotes);
-char * ListUsersMultiple(int successfulSocket);
-char * ListUsersUnico(char* id,int successfulSocket);
+char *noQuotes(char *withQuotes);
+char *ListUsersMultiple(int successfulSocket);
+char *ListUsersUnico(char *id, int successfulSocket);
 
 // GLOBAL VARIABLES
 char *HOST;
@@ -89,7 +89,7 @@ int main(int argc, char const *argv[])
     // Bienvenida
     welcomeMessage();
     HOST = ipAddress;
-    
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error\n");
@@ -135,7 +135,8 @@ int main(int argc, char const *argv[])
                 switch (commandFunctions(buffer))
                 {
                 case 0:
-                    sendSuccessful = sendMessage("BYE", sock);
+                    // sendSuccessful = sendMessage("BYE", sock);
+                    write(sock, "BYE", strlen("BYE"));
                     exit(EXIT_SUCCESS);
                     break;
 
@@ -150,20 +151,18 @@ int main(int argc, char const *argv[])
                     //prueba++;
                     //prueba++;
                     //prueba++;
-                    
-                    
+
                     //printf("Llegue al solicitar un usuario\n");
                     //printf("prueba %s",buffer);
                     // printf("Paso la asignacion %s",pruebalist);
                     // strcpy(pruebalist,buffer);
                     strncpy(prueba, buffer + 3, sizeof(buffer) - 3);
-                    //printf("prueba %s",prueba);                    
+                    //printf("prueba %s",prueba);
                     LastcharDel(prueba);
                     //printf("Se va a mandar al id ...%s...\n",prueba);
-                    strcpy(idParaMandar,prueba);
+                    strcpy(idParaMandar, prueba);
                     //printf("EL ID PARA MANDAR ES ...%s...\n",idParaMandar);
                     fflush(stdout);
-
 
                     break;
                 case 2:
@@ -174,19 +173,19 @@ int main(int argc, char const *argv[])
                     break;
                 case 3:
                     //c 1 o //c 2 o //c 3
-                    
+
                     //pruebast++;
                     //pruebast++;
                     //pruebast++;
 
-//                    LastcharDel(pruebast);
+                    //                    LastcharDel(pruebast);
                     //printf("lo que trae es %s",pruebast);
 
                     //len = strlen(buffer[3]);
 
                     //for (int i = 0; i < len; i++)
                     //{
-                        //dec = dec * 10 + (buffer[i] - '0');
+                    //dec = dec * 10 + (buffer[i] - '0');
                     //}
                     //printf("prueba para status %d", pruebaparaestatus[0]);
                     //char *a = ChangeStatus(buffer[3], sock);
@@ -201,7 +200,7 @@ int main(int argc, char const *argv[])
                     LastcharDel(pruebastatus);
                     //printf("prueba ...%s...",pruebastatus);
                     fflush(stdout);
-                    char *statuschange = ChangeStatus(pruebastatus,sock);
+                    char *statuschange = ChangeStatus(pruebastatus, sock);
                     break;
                 case 4:
                     printf("Busqueda de usuario en especifico\n");
@@ -213,11 +212,11 @@ int main(int argc, char const *argv[])
                     LastcharDel(pruebalist);
                     ///printf("prueba ...%s...",pruebalist);
                     fflush(stdout);
-                    char *unsolousuario = ListUsersUnico(pruebalist,sock);
+                    char *unsolousuario = ListUsersUnico(pruebalist, sock);
                     break;
 
                 default:
-                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive \\u [id] - search specific user" );
+                    printf("======== Help:\n========  \\q - quit\n========  \\m [user] - change user target\n========  \\b [mssg] - broadcast message\n========  \\l - List\n========  \\c [1-3]- change status: 1 active, 2 busy, 3 inactive \\u [id] - search specific user");
                     break;
                 }
             }
@@ -287,27 +286,28 @@ int commandFunctions(char *command)
 
 void checkHostName(int hostname)
 {
-    if (hostname == -1){
+    if (hostname == -1)
+    {
         perror("gethostbyname");
     }
 }
-// Returns host information corresponding to host name 
-void checkHostEntry(struct hostent * hostentry) 
-{ 
-	if (hostentry == NULL) 
-	{ 
-		perror("gethostbyname"); 
-		exit(1); 
-	} 
-} 
-void checkIPbuffer(char *IPbuffer) 
-{ 
-	if (NULL == IPbuffer) 
-	{ 
-		perror("inet_ntoa"); 
-		exit(1); 
-	} 
-} 
+// Returns host information corresponding to host name
+void checkHostEntry(struct hostent *hostentry)
+{
+    if (hostentry == NULL)
+    {
+        perror("gethostbyname");
+        exit(1);
+    }
+}
+void checkIPbuffer(char *IPbuffer)
+{
+    if (NULL == IPbuffer)
+    {
+        perror("inet_ntoa");
+        exit(1);
+    }
+}
 int sendMessage(char *message, int successfulSocket)
 {
     /* 
@@ -316,27 +316,27 @@ int sendMessage(char *message, int successfulSocket)
 	"user": "<nombre>"
      */
     // printf("message: %s\n", message);
-    
-    char hostbuffer[256]; 
-	char *IPbuffer; 
-	struct hostent *host_entry; 
-	int hostname; 
 
-	// To retrieve hostname 
-	hostname = gethostname(hostbuffer, sizeof(hostbuffer)); 
-	checkHostName(hostname); 
+    char hostbuffer[256];
+    char *IPbuffer;
+    struct hostent *host_entry;
+    int hostname;
 
-	// To retrieve host information 
-	host_entry = gethostbyname(hostbuffer); 
-	checkHostEntry(host_entry); 
+    // To retrieve hostname
+    hostname = gethostname(hostbuffer, sizeof(hostbuffer));
+    checkHostName(hostname);
 
-	// To convert an Internet network 
-	// address into ASCII string 
-	IPbuffer = inet_ntoa(*((struct in_addr*) 
-						host_entry->h_addr_list[0])); 
+    // To retrieve host information
+    host_entry = gethostbyname(hostbuffer);
+    checkHostEntry(host_entry);
+
+    // To convert an Internet network
+    // address into ASCII string
+    IPbuffer = inet_ntoa(*((struct in_addr *)
+                               host_entry->h_addr_list[0]));
     ORIGIN = IPbuffer;
-	//printf("Hostname: %s\n", hostbuffer); 
-	//printf("Host IP: %s", IPbuffer);
+    //printf("Hostname: %s\n", hostbuffer);
+    //printf("Host IP: %s", IPbuffer);
     // HOST = "1.1.1.1";
     char *out;
     //cJSON *usr = NULL;
@@ -386,13 +386,13 @@ int sendPrivateMessage(char *message, int successfulSocket)
     //LastcharDel(usuario.userID);/////////////////
     //idParaMandar = LastcharDel(idParaMandar);
     ////////////////////////strcpy (idParaMandar, LastcharDel( idParaMandar));
-    noQuotes( usuario.userID);
+    noQuotes(usuario.userID);
     //noQuotes(idParaMandar);
-//prueba
+    //prueba
 
-	//usuario.userID[i-1]='\0';
-//prueba
-        //printf("id from: %s...\n",usuario.userID);
+    //usuario.userID[i-1]='\0';
+    //prueba
+    //printf("id from: %s...\n",usuario.userID);
     //strcpy (usuario.userID, noQuotes( usuario.userID));
     //strcpy (usuario.userID, noQuotes( usuario.userID));
     //strcpy (idParaMandar, LastcharDel( idParaMandar));
@@ -408,7 +408,6 @@ int sendPrivateMessage(char *message, int successfulSocket)
     //printf("UserID: %s\n",usuario.userID);
     //printf("mensaje: %s\n",message);
 
-
     //printf("MENSAJE: %s\n", paramensaje);
     successfulSocket = write(sock, paramensaje, strlen(paramensaje));
     free(paramensaje);
@@ -421,27 +420,26 @@ int sendPrivateMessage(char *message, int successfulSocket)
     return successfulSocket;
 }
 
-
-char * ListUsersUnico(char* id,int successfulSocket){
+char *ListUsersUnico(char *id, int successfulSocket)
+{
 
     //Estructura del Json para listar usuarios (server response) un usuario
     //printf("Estructura del json de listar usuarios (Request) un usuario\n");
-    cJSON *ListUsersRequestUnico= cJSON_CreateObject();
-    cJSON_AddStringToObject(ListUsersRequestUnico,"action","LIST_USER");
-    cJSON_AddStringToObject(ListUsersRequestUnico,"user",id);
+    cJSON *ListUsersRequestUnico = cJSON_CreateObject();
+    cJSON_AddStringToObject(ListUsersRequestUnico, "action", "LIST_USER");
+    cJSON_AddStringToObject(ListUsersRequestUnico, "user", id);
     char *out;
     out = cJSON_Print(ListUsersRequestUnico);
     successfulSocket = write(sock, out, strlen(out));
-//    printf("%s\n\n", out);
+    //    printf("%s\n\n", out);
     cJSON_Delete(ListUsersRequestUnico);
     free(out);
 }
 
+char *ListUsersMultiple(int successfulSocket)
+{
 
-
-char * ListUsersMultiple(int successfulSocket){
-
-/*
+    /*
     //Estructura del Json para listar usuarios
     printf("Estructura del json de listar usuarios\n");
     cJSON *ListUsers= cJSON_CreateObject();
@@ -454,8 +452,8 @@ char * ListUsersMultiple(int successfulSocket){
     char *out;
     //Estructura del Json para listar usuarios
     //printf("Estructura del json de listar usuarios\n");
-    cJSON *ListUsers= cJSON_CreateObject();
-    cJSON_AddStringToObject(ListUsers,"action","LIST_USER");
+    cJSON *ListUsers = cJSON_CreateObject();
+    cJSON_AddStringToObject(ListUsers, "action", "LIST_USER");
     out = cJSON_Print(ListUsers);
     successfulSocket = write(sock, out, strlen(out));
     //printf("%s\n\n", out);
@@ -484,8 +482,8 @@ char *ChangeStatus(char status[1024], int successfulSocket)
 
 
      */
-    
-    if (strcmp(status,"1"))
+
+    if (strcmp(status, "1"))
     {
 
         cJSON *RequestCambioEstado = cJSON_CreateObject();
@@ -499,7 +497,7 @@ char *ChangeStatus(char status[1024], int successfulSocket)
         free(out);
         return "Estado cambiado a active";
     }
-    if (strcmp(status,"2"))
+    if (strcmp(status, "2"))
     {
 
         cJSON *RequestCambioEstado = cJSON_CreateObject();
@@ -514,7 +512,7 @@ char *ChangeStatus(char status[1024], int successfulSocket)
 
         return "Estado cambiado a busy";
     }
-    if (strcmp(status,"3"))
+    if (strcmp(status, "3"))
     {
 
         cJSON *RequestCambioEstado = cJSON_CreateObject();
@@ -549,7 +547,7 @@ void conn(int successfulSocket)
     {
         connected = true;
         sendMessage(username, successfulSocket);
-        
+
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
         //printf("%s\n", recvBuffer);
         // printf("buffer size: %ld\n", sizeof(recvBuffer));
@@ -596,6 +594,7 @@ void *listening(void *sock)
 {
     int newSock = *((int *)sock);
     char bufferUser[1024];
+    bool listBool = false;
     while (1)
     {
         // COMUNICATION USER
@@ -604,95 +603,109 @@ void *listening(void *sock)
         valread = read(newSock, bufferUser, sizeof(bufferUser));
         if (valread > 0)
         {
-            //printf("mensaje: %s", bufferUser);
+            // printf("\n");
             cJSON *json = cJSON_Parse(bufferUser);
             cJSON *pruebaprint = cJSON_GetArrayItem(json, 0);
             char *pruebasprint = cJSON_Print(pruebaprint);
-            //printf("el item 0 es ...%s...\n",pruebasprint);
             noQuotes(pruebasprint);
-            //printf("el item 0 es ...%s...\n",pruebasprint);
-
             int tammao = cJSON_GetArraySize(json);
             int validateok;
-            validateok = strncmp(pruebasprint,"OK",2);
-            //printf("nos resulta %d",validateok);
-            if(validateok==0 ){
-                if (tammao == 1){
-                //PARSEAR PARA DEVOLVER SOLO EL OK 
+            validateok = strncmp(pruebasprint, "OK", 2);
+            if (validateok == 0)
+            {
+                listBool = true;
+                if (tammao == 1)
+                {
+
+                    //PARSEAR PARA DEVOLVER SOLO EL OK
                     cJSON *MENSAJESOLOOK = cJSON_GetObjectItem(json, "status");
                     char *mensajeunicok = cJSON_Print(MENSAJESOLOOK);
                     noQuotes(mensajeunicok);
                     // printf("Server said: %s",mensajeunicok);
-                
-                }else{
-                //PARSEAR PARA DEVOLVER EL ID 
+                }
+                else
+                {
+                    //PARSEAR PARA DEVOLVER EL ID
                     cJSON *MENSAJESOLOOK = cJSON_GetObjectItem(json, "status");
                     char *mensajeunicok = cJSON_Print(MENSAJESOLOOK);
                     noQuotes(mensajeunicok);
-                    printf("Server said: %s\n",mensajeunicok);
+                    printf("Server said: %s\n", mensajeunicok);
                     cJSON *userfromok = cJSON_GetObjectItem(json, "user");
-                    cJSON *iduserfromok = cJSON_GetObjectItem(userfromok,"id");
+                    cJSON *iduserfromok = cJSON_GetObjectItem(userfromok, "id");
                     char *currentuserid = cJSON_Print(iduserfromok);
                     noQuotes(currentuserid);
-                    printf("Your ID is: %s\n",currentuserid);
+                    printf("Your ID is: %s\n", currentuserid);
                 }
-
             }
             int validateError;
-            validateError = strcmp(pruebasprint,"ERROR");
-            if (validateError==0){
-                    cJSON *MensajeError = cJSON_GetObjectItem(json, "message");
-                    char *Textoerror = cJSON_Print(MensajeError);
-                    noQuotes(Textoerror);
-                    printf("Server detected error with message: %s\n",Textoerror);   
+            validateError = strcmp(pruebasprint, "ERROR");
+            if (validateError == 0)
+            {
+                listBool = true;
+                cJSON *MensajeError = cJSON_GetObjectItem(json, "message");
+                char *Textoerror = cJSON_Print(MensajeError);
+                noQuotes(Textoerror);
+                printf("Server detected error with message: %s\n", Textoerror);
             }
             int ValidateMessageRecive;
-            ValidateMessageRecive = strcmp(pruebasprint,"RECEIVE_MESSAGE");
-            if(ValidateMessageRecive==0){
+            ValidateMessageRecive = strcmp(pruebasprint, "RECEIVE_MESSAGE");
+            if (ValidateMessageRecive == 0)
+            {
+                listBool = true;
+
                 cJSON *MensajeRecibido = cJSON_GetObjectItem(json, "message");
                 cJSON *From = cJSON_GetObjectItem(json, "from");
                 char *TextoMensaje = cJSON_Print(MensajeRecibido);
                 char *textoFrom = cJSON_Print(From);
                 noQuotes(textoFrom);
                 noQuotes(TextoMensaje);
-                printf("\n%s: ",textoFrom); 
-                printf("%s\n",TextoMensaje);
+                printf("\n%s: ", textoFrom);
+                printf("%s\n", TextoMensaje);
             }
             int ValidateUserConnected;
-            ValidateUserConnected = strcmp (pruebasprint,"USER_CONNECTED");
-            if (ValidateUserConnected==0){
-                cJSON *Userconectado = cJSON_GetObjectItem(json,"user");
-                cJSON *iddelusuario = cJSON_GetObjectItem(Userconectado,"id");
-                cJSON *nombredelusuairoconectado = cJSON_GetObjectItem(Userconectado,"name");
+            ValidateUserConnected = strcmp(pruebasprint, "USER_CONNECTED");
+            if (ValidateUserConnected == 0)
+            {
+                listBool = true;
+
+                cJSON *Userconectado = cJSON_GetObjectItem(json, "user");
+                cJSON *iddelusuario = cJSON_GetObjectItem(Userconectado, "id");
+                cJSON *nombredelusuairoconectado = cJSON_GetObjectItem(Userconectado, "name");
                 char *textoidusuario = cJSON_Print(iddelusuario);
                 char *textonombreusuairo = cJSON_Print(nombredelusuairoconectado);
                 noQuotes(textoidusuario);
                 noQuotes(textonombreusuairo);
+                noQuotes(textonombreusuairo);
+                noQuotes(textonombreusuairo);
+                printf("\n");
                 printf("El usuario con id %s", textoidusuario);
-                printf(" y nombre %s se conecto",textonombreusuairo);
-
-
+                printf(" y nombre %s se conecto", textonombreusuairo);
+                printf("\n");
             }
             int ValidateUserDisConnected;
-            ValidateUserDisConnected = strcmp (pruebasprint,"USER_DISCONNECTED");
-            if (ValidateUserDisConnected==0){
-                cJSON *Userdesconectado = cJSON_GetObjectItem(json,"user");
-                cJSON *iddelusuario = cJSON_GetObjectItem(Userdesconectado,"id");
-                cJSON *nombredelusuairoconectado = cJSON_GetObjectItem(Userdesconectado,"name");
+            ValidateUserDisConnected = strcmp(pruebasprint, "USER_DISCONNECTED");
+            if (ValidateUserDisConnected == 0)
+            {
+                listBool = true;
+
+                cJSON *Userdesconectado = cJSON_GetObjectItem(json, "user");
+                cJSON *iddelusuario = cJSON_GetObjectItem(Userdesconectado, "id");
+                cJSON *nombredelusuairoconectado = cJSON_GetObjectItem(Userdesconectado, "name");
                 char *textoidusuario = cJSON_Print(iddelusuario);
                 char *textonombreusuairo = cJSON_Print(nombredelusuairoconectado);
                 noQuotes(textoidusuario);
                 noQuotes(textonombreusuairo);
+                noQuotes(textonombreusuairo);
+                noQuotes(textonombreusuairo);
+                printf("\n");
                 printf("El usuario con id %s", textoidusuario);
-                printf(" y nombre %s se desconecto",textonombreusuairo);
-
-
-            }else{
+                printf(" y nombre %s se desconecto", textonombreusuairo);
+                printf("\n");
+            }
+            if (listBool == false)
+            {
                 printf("mensaje: %s", bufferUser);
             }
-
-
-
 
             memset(bufferUser, 0, sizeof(bufferUser));
             fflush(stdout);
@@ -704,18 +717,23 @@ void *listening(void *sock)
             wantToExit = true;
             break;
         }
+        // printf("\n");
+        printf("%s: ", username);
+
+
     }
     pthread_exit(NULL);
 }
 
-char *noQuotes(char* withQuotes){
+char *noQuotes(char *withQuotes)
+{
     // char str[25]="hello";
-	int i,len=strlen(withQuotes);
-	for(i=1;i<len-1;i++)
-	{
-		withQuotes[i-1]=withQuotes[i];
-	}
-	withQuotes[i-1]='\0';
-	// printf(withQuotes);
+    int i, len = strlen(withQuotes);
+    for (i = 1; i < len - 1; i++)
+    {
+        withQuotes[i - 1] = withQuotes[i];
+    }
+    withQuotes[i - 1] = '\0';
+    // printf(withQuotes);
     return withoutQuotes;
 }
