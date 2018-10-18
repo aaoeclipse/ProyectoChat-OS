@@ -187,6 +187,7 @@ int main(int argc, char const *argv[])
                     //printf("%s", a);
                     //printf("Llegue al solicitar un usuario\n");
                     //printf("prueba %s",buffer);
+                    printf("Cambio de status");
                     char pruebastatus[1024];
                     // printf("Paso la asignacion %s",pruebalist);
                     // strcpy(pruebalist,buffer);
