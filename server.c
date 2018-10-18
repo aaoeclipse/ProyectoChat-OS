@@ -180,7 +180,6 @@ int main(int argc, char const *argv[])
             respuestaDeJSON(users[counter]);
             
             counter = counter + 1;
-            listUsers();
             
         }
         else
@@ -499,6 +498,11 @@ void recivedJSON(char *info, struct user *actualUser)
     {
         // LIST USER
         printf("LIST USER");
+        char *getListUsers = listUsers();
+        write(actualUser->fileDescriptor, getListUsers, strlen(getListUsers));
+        
+        // printf("List sures : %s", getListUsers);
+
     }
     compare = strncmp(CHANGE, action, sizeof(CHANGE));
     if (compare == 0)
@@ -535,10 +539,8 @@ int indexFromID(char *id)
         negative = strncmp("-1", availableUsers[i].userID, 10);
         if (negative == 0)
         {
-            printf("yes\n");
             break;
         }
-        printf("no\n");
         fflush(stdout);
 
         equals = strncmp(id, availableUsers[i].userID, 10);
