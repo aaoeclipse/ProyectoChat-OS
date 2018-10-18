@@ -11,6 +11,9 @@
 #include <ifaddrs.h>
 #include <pthread.h>
 #include "cJSON.c"
+#include <errno.h> 
+#include <netdb.h> 
+#include <sys/types.h>
 
 #define PORT 8080
 // #define NETWORKADDRESS 127.0.0.1
@@ -34,6 +37,8 @@ char * ListUsersMultiple(int successfulSocket);
 char * ListUsersUnico(char* id,int successfulSocket);
 
 // GLOBAL VARIABLES
+char *HOST;
+char *ORIGIN;
 int ID, lengthOfString, sock = 0, valread;
 char idParaMandar[25];
 char *withoutQuotes;
@@ -83,7 +88,8 @@ int main(int argc, char const *argv[])
 
     // Bienvenida
     welcomeMessage();
-
+    HOST = ipAddress;
+    
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error\n");
@@ -278,23 +284,78 @@ int commandFunctions(char *command)
     }
     return -99;
 }
+
+void checkHostName(int hostname)
+{
+    if (hostname == -1){
+        perror("gethostbyname");
+    }
+}
+// Returns host information corresponding to host name 
+void checkHostEntry(struct hostent * hostentry) 
+{ 
+	if (hostentry == NULL) 
+	{ 
+		perror("gethostbyname"); 
+		exit(1); 
+	} 
+} 
+void checkIPbuffer(char *IPbuffer) 
+{ 
+	if (NULL == IPbuffer) 
+	{ 
+		perror("inet_ntoa"); 
+		exit(1); 
+	} 
+} 
 int sendMessage(char *message, int successfulSocket)
 {
     /* 
-    "action": "SEND_MESSAGE",
-	"from": "<idusuario>",
-	"to": "<idusuario>",
-	"message": "message"
+    "host": "192.168.1.2",
+	"origin": "192.168.1.3",
+	"user": "<nombre>"
      */
     // printf("message: %s\n", message);
-    successfulSocket = write(sock, message, strlen(message));
+    
+    char hostbuffer[256]; 
+	char *IPbuffer; 
+	struct hostent *host_entry; 
+	int hostname; 
+
+	// To retrieve hostname 
+	hostname = gethostname(hostbuffer, sizeof(hostbuffer)); 
+	checkHostName(hostname); 
+
+	// To retrieve host information 
+	host_entry = gethostbyname(hostbuffer); 
+	checkHostEntry(host_entry); 
+
+	// To convert an Internet network 
+	// address into ASCII string 
+	IPbuffer = inet_ntoa(*((struct in_addr*) 
+						host_entry->h_addr_list[0])); 
+    ORIGIN = IPbuffer;
+	//printf("Hostname: %s\n", hostbuffer); 
+	//printf("Host IP: %s", IPbuffer);
+    // HOST = "1.1.1.1";
+    char *out;
+    //cJSON *usr = NULL;
+    cJSON *usr = cJSON_CreateObject();
+    cJSON_AddStringToObject(usr, "host", HOST);
+    cJSON_AddStringToObject(usr, "origin", ORIGIN);
+    cJSON_AddStringToObject(usr, "user", username);
+    out = cJSON_Print(usr);
+    printf(out);
+    fflush(stdout);
+    successfulSocket = write(sock, out, strlen(out));
+    cJSON_Delete(usr);
+    free(out);
 
     if (successfulSocket < 0)
     {
         printf("error writing to socket\n");
         fflush(stdout);
     }
-    return successfulSocket;
 }
 
 int sendPrivateMessage(char *message, int successfulSocket)
@@ -509,6 +570,7 @@ void conn(int successfulSocket)
     {
         connected = true;
         sendMessage(username, successfulSocket);
+        
         successfulSocket = read(sock, recvBuffer, sizeof(recvBuffer));
         //printf("%s\n", recvBuffer);
         // printf("buffer size: %ld\n", sizeof(recvBuffer));
