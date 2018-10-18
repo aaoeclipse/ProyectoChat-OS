@@ -562,7 +562,7 @@ void conn(int successfulSocket)
 
         //buffer es lo que contiene el string donde viene lo que es la estructura del json
         //se crea un objeto json, donde lo parseado se asigna
-        cJSON *json = cJSON_Parse(recvBuffer);
+        cJSON *json = cJSON_Parse(recvBuffer); 
 
         cJSON *pruebaid = cJSON_GetObjectItem(json, "user");
         cJSON *pruebaidreal = cJSON_GetObjectItem(pruebaid, "id");
